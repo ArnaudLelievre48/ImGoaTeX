@@ -1,0 +1,11 @@
+%title: My Presentation
+%author: Arnaud Lelièvre
+
+\section{Intro}
+\subsection{some frames}
+
+\begin{frame}{Welcome}
+Hello, **ImGoaTeX**!
+\video{flower.mp4}
+\end{frame}
+
