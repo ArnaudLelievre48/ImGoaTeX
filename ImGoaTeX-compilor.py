@@ -137,9 +137,22 @@ def parse(tokens):
                 print(presentation.sections[-1].subsections[-1].frames[-1].contents)
             else:
                 raise("You are not in a frame, you thus cannot add text to a frame")
+    return(presentation)
 
 def parse_text_to_html(content):
     return(f"<p>{content}</p>")
+
+def write_output_html_file(presentation, name="output.html"):
+    OUTLINE_HTML = ""
+    for k in range(len(presentation.sections)):
+        OUTLINE_HTML = OUTLINE_HTML + f"<p>{k}) {presentation.sections[k].title}</p>\n"
+        for l in range(len(presentation.sections[k].subsections)):
+            OUTLINE_HTML = OUTLINE_HTML + f"<p>{k}.{l}) {presentation.sections[k].subsections[l].title}</p>\n"
+
+    body = f"<div>{OUTLINE_HTML}</div>"
+
+    with open(name, "w+") as outfile:
+        outfile.write(f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
 
 
 if __name__ == "__main__" :
@@ -150,4 +163,5 @@ if __name__ == "__main__" :
         print()
         tokens = tokenize(lines)
         print(tokens)
-        parse(tokens)
+        presentation = parse(tokens)
+        write_output_html_file(presentation)
