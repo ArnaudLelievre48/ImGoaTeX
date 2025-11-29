@@ -143,13 +143,28 @@ def parse_text_to_html(content):
     return(f"<p>{content}</p>")
 
 def write_output_html_file(presentation, name="output.html"):
-    OUTLINE_HTML = ""
-    for k in range(len(presentation.sections)):
-        OUTLINE_HTML = OUTLINE_HTML + f"<p>{k}) {presentation.sections[k].title}</p>\n"
-        for l in range(len(presentation.sections[k].subsections)):
-            OUTLINE_HTML = OUTLINE_HTML + f"<p>{k}.{l}) {presentation.sections[k].subsections[l].title}</p>\n"
+    PRESENTATION_FRAME = f"<div class='presentation_frame'><h1>{presentation.title}</h1><h2>author : {presentation.author}</h2><h2>date : {presentation.date}</h2></div>"
 
-    body = f"<div>{OUTLINE_HTML}</div>"
+    OUTLINE_HTML_FRAME = ""
+    for k in range(len(presentation.sections)):
+        OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h2>{k+1}) {presentation.sections[k].title}</h2>\n"
+        for l in range(len(presentation.sections[k].subsections)):
+            OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h3>{k+1}.{l+1}) {presentation.sections[k].subsections[l].title}</h3>\n"
+
+    FRAMES = ""
+    for k in range(len(presentation.sections)):
+        for l in range(len(presentation.sections[k].subsections)):
+            for m in range(len(presentation.sections[k].subsections[l].frames)):
+                FRAME_BODY = f"<h3>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h3>"
+                for content in presentation.sections[k].subsections[l].frames[m].contents:
+                    FRAME_BODY = FRAME_BODY + content
+                FRAME_BODY = f"<div class='frame'>{FRAME_BODY}</div>"
+                FRAMES = FRAMES + FRAME_BODY
+
+
+    OUTLINE_HTML_FRAME = f"<div class='outline_html_frame'>{OUTLINE_HTML_FRAME}</div>"
+
+    body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
     with open(name, "w+") as outfile:
         outfile.write(f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
