@@ -6,11 +6,11 @@
 
 \begin{frame}{Welcome}
 Hello, **ImGoaTeX**!
-\video{flower.mp4}
+\video{myvideo.mp4}
 \end{frame}
 
 \begin{frame}{Welcome again !}
 Hi my G
-\video{flower.mp4}
+\image{mygif.gif}
 \end{frame}
 

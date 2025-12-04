@@ -137,13 +137,44 @@ def parse(tokens):
                 print(presentation.sections[-1].subsections[-1].frames[-1].contents)
             else:
                 raise("You are not in a frame, you thus cannot add text to a frame")
+
+        if token.type == "VIDEO":
+            if current_frame:
+                try:
+                    with open("medias/"+token.value, 'r') as _:
+                        video_html = f"<video width='320px'><source src='medias/{token.value}' type='video/mp4'>Your browser cannot read the video file '{token.value}'</video>"
+                        current_frame.contents.append( video_html )
+                except:
+                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
+            else:
+                raise("You are not in a frame, you thus cannot add text to a frame")
+
+        if token.type == "IMAGE":
+            if current_frame:
+                try:
+                    with open("medias/"+token.value, 'r') as _:
+                        image_html = f"<img width='320px' src='medias/{token.value}'></img>"
+                        current_frame.contents.append( image_html )
+                except:
+                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
+            else:
+                raise("You are not in a frame, you thus cannot add text to a frame")
+
     return(presentation)
 
+
+# TODO : add text formating (bold, italics...)
+# parse text in html format
 def parse_text_to_html(content):
     return(f"<p>{content}</p>")
 
-def write_output_html_file(presentation, name="output.html"):
-    PRESENTATION_FRAME = f"<div class='presentation_frame'><h1>{presentation.title}</h1><h2>author : {presentation.author}</h2><h2>date : {presentation.date}</h2></div>"
+
+
+# takes the presentation data and generate the output file/files
+def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION=False):
+    PRESENTATION_FRAME = f"<div style='border: 1px solid black;'><h1>{presentation.title}</h1><h2>author : {presentation.author}</h2><h2>date : {presentation.date}</h2></div>"
+    if CSS_FILE_GENERATION:
+        PRESENTATION_FRAME = f"<div class='presentation_frame'><h1>{presentation.title}</h1><h2>author : {presentation.author}</h2><h2>date : {presentation.date}</h2></div>"
 
     OUTLINE_HTML_FRAME = ""
     for k in range(len(presentation.sections)):
@@ -158,11 +189,14 @@ def write_output_html_file(presentation, name="output.html"):
                 FRAME_BODY = f"<h3>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h3>"
                 for content in presentation.sections[k].subsections[l].frames[m].contents:
                     FRAME_BODY = FRAME_BODY + content
-                FRAME_BODY = f"<div class='frame'>{FRAME_BODY}</div>"
+                FRAME_BODY = f"<div style='border: 1px solid black;'>{FRAME_BODY}</div>"
+                if CSS_FILE_GENERATION:
+                    FRAME_BODY = f"<div class='frame'>{FRAME_BODY}</div>"
                 FRAMES = FRAMES + FRAME_BODY
 
-
-    OUTLINE_HTML_FRAME = f"<div class='outline_html_frame'>{OUTLINE_HTML_FRAME}</div>"
+    OUTLINE_HTML_FRAME = f"<div style='border: 1px solid black;'>{OUTLINE_HTML_FRAME}</div>"
+    if CSS_FILE_GENERATION:
+        OUTLINE_HTML_FRAME = f"<div class='outline_html_frame'>{OUTLINE_HTML_FRAME}</div>"
 
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
