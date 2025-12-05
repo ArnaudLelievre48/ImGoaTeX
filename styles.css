@@ -1,0 +1,32 @@
+.frame {
+	margin-left: 5vw;
+	margin-right:5vw;
+	margin-top: 5vh;
+	margin-bottom: 5vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width:90vw;
+	height:90vh;
+	border: 2px solid #000;
+}
+
+.outline {
+	width: 90%;
+	height: 90%;
+	background-color: red;
+	display: flex;
+	align-items: center;
+	justify-content: start;
+}
+
+h1 {
+	font-size: 4vw;
+}
+h2 {
+	font-size: 2vw;
+}
+h3 {
+	font-size: 1vw;
+}

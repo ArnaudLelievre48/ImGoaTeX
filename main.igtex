@@ -1,4 +1,5 @@
 %title: My Presentation
+%subtitle: My Presentation : a test actually
 %author: Arnaud Lelièvre
 
 \section{Intro}
@@ -10,7 +11,18 @@ Hello, **ImGoaTeX**!
 \end{frame}
 
 \begin{frame}{Welcome again !}
-Hi my G
+Wassup OG, how is it going ?
 \image{mygif.gif}
 \end{frame}
 
+\section{Premiere partie}
+\subsection{some other frames}
+
+\begin{frame}{Hey wassup}
+Test
+\end{frame}
+
+\subsection{some other other frames}
+\begin{frame}{Hey wassup, another one}
+test again
+\end{frame}

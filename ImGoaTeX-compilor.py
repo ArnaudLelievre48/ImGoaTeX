@@ -45,8 +45,9 @@ def tokenize(lines):
 
 
 class Presentation:
-    def __init__(self, title=None, author=None, date=None):
+    def __init__(self, title=None, subtitle=None, author=None, date=None):
         self.title = title
+        self.subtitle = subtitle
         self.author = author
         self.date = datetime.datetime.now()
         self.sections = []
@@ -86,6 +87,9 @@ def parse(tokens):
             if key == "title":
                 presentation.title = val
                 print("title :", val)
+            if key == "subtitle":
+                presentation.subtitle = val
+                print("subtitle :", val)
             if key == "author":
                 presentation.author = val
                 print("author :", val)
@@ -100,7 +104,9 @@ def parse(tokens):
         if token.type == "SECTION":
             if token.value:
                 presentation.sections.append( Section(token.value) )
+                print()
                 print("section :", token.value)
+                print()
             else:
                 raise("No name were given for the section")
 
@@ -108,26 +114,34 @@ def parse(tokens):
             if token.value:
                 if presentation.sections != []:
                     presentation.sections[-1].subsections.append( Subsection(token.value) )
-                    print("subsection :", token.value)
+                    print()
+                    print("section : ", presentation.sections[-1].title, " - subsection :", token.value)
+                    print()
                 else:
                     raise("A subsection has been tried to be created, but no sections were declared beforehand")
             else:
                 raise("No name were given for the subsection")
 
         if token.type == "BEGIN_FRAME":
+            print(f"trying to start the frame '{token.value}', current frame is {current_frame}")
+            if current_frame is not None:
+                raise(f"the frame {current_frame.title} has not been close, you cannot begin another one")
             if presentation.sections != []:
                 if presentation.sections[-1] != []:
                     presentation.sections[-1].subsections[-1].frames.append( Frame(token.value) )
-                    print("frame :", token.value)
+                    print(f"frame '{token.value}' is created")
                     current_frame = presentation.sections[-1].subsections[-1].frames[-1]
+                    print(f"current frame is now '{current_frame.title}'")
                 else:
                     raise("A frame has been tried to be created, but no subsection were declared beforehand")
             else:
                 raise("A frame has been tried to be created, but no section nor subsection were declared beforehand")
 
         if token.type == "END_FRAME":
-            if current_frame:
+            if current_frame is not None:
+                print(f"CLOSING THE FRAME '{current_frame.title}'")
                 current_frame = None
+                print(current_frame)
             else:
                 raise("You are not in a frame, you thus cannot end a frame")
 
@@ -172,36 +186,39 @@ def parse_text_to_html(content):
 
 # takes the presentation data and generate the output file/files
 def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION=False):
-    PRESENTATION_FRAME = f"<div style='border: 1px solid black;'><h1>{presentation.title}</h1><h2>author : {presentation.author}</h2><h2>date : {presentation.date}</h2></div>"
+    PRESENTATION_FRAME = f"<div><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
     if CSS_FILE_GENERATION:
-        PRESENTATION_FRAME = f"<div class='presentation_frame'><h1>{presentation.title}</h1><h2>author : {presentation.author}</h2><h2>date : {presentation.date}</h2></div>"
+        PRESENTATION_FRAME = f"<div class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     OUTLINE_HTML_FRAME = ""
     for k in range(len(presentation.sections)):
-        OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h2>{k+1}) {presentation.sections[k].title}</h2>\n"
+        OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h1>{k+1} ) {presentation.sections[k].title}</h1>\n"
         for l in range(len(presentation.sections[k].subsections)):
-            OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h3>{k+1}.{l+1}) {presentation.sections[k].subsections[l].title}</h3>\n"
+            OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h2 style='margin-left:5vw'>{k+1}.{l+1} ) {presentation.sections[k].subsections[l].title}</h2>\n"
 
     FRAMES = ""
     for k in range(len(presentation.sections)):
         for l in range(len(presentation.sections[k].subsections)):
             for m in range(len(presentation.sections[k].subsections[l].frames)):
-                FRAME_BODY = f"<h3>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h3>"
+                FRAME_BODY = f"<h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2>"
                 for content in presentation.sections[k].subsections[l].frames[m].contents:
                     FRAME_BODY = FRAME_BODY + content
-                FRAME_BODY = f"<div style='border: 1px solid black;'>{FRAME_BODY}</div>"
+                FRAME_BODY = f"<div>{FRAME_BODY}</div>"
                 if CSS_FILE_GENERATION:
                     FRAME_BODY = f"<div class='frame'>{FRAME_BODY}</div>"
                 FRAMES = FRAMES + FRAME_BODY
 
-    OUTLINE_HTML_FRAME = f"<div style='border: 1px solid black;'>{OUTLINE_HTML_FRAME}</div>"
+    OUTLINE_HTML_FRAME = f"<div>{OUTLINE_HTML_FRAME}</div>"
     if CSS_FILE_GENERATION:
-        OUTLINE_HTML_FRAME = f"<div class='outline_html_frame'>{OUTLINE_HTML_FRAME}</div>"
+        OUTLINE_HTML_FRAME = f"<div class='frame'><div class='outline'>{OUTLINE_HTML_FRAME}</div></div>"
 
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
     with open(name, "w+") as outfile:
-        outfile.write(f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
+        if CSS_FILE_GENERATION:
+            outfile.write(f"""<!DOCTYPE html><html><head><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
+        else:
+            outfile.write(f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
 
 
 if __name__ == "__main__" :
@@ -213,4 +230,4 @@ if __name__ == "__main__" :
         tokens = tokenize(lines)
         print(tokens)
         presentation = parse(tokens)
-        write_output_html_file(presentation)
+        write_output_html_file(presentation, CSS_FILE_GENERATION=True)
