@@ -179,8 +179,25 @@ def parse(tokens):
 
 # TODO : add text formating (bold, italics...)
 # parse text in html format
-def parse_text_to_html(content):
-    return(f"<p>{content}</p>")
+def parse_text_to_html(text):
+    parts = re.split(r'(\\\\|\\n)', text)
+    bad = {r"\\", r"\n", r""}
+    print("PARTS = ", parts)
+    for i in range(len(parts)):
+        # ** ... ** to <b> ... </b>
+        parts[i] = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', parts[i])
+        # * ... * or _ ... _ to <i> ... </i>
+        parts[i] = re.sub(r'\*(.+?)\*', r'<i>\1</i>', parts[i])
+        # \textbf{...} to <b> ... </b>
+        parts[i] = re.sub(r'\\textbf\{(.+?)\}', r'<b>\1</b>', parts[i])
+        # \textit{...} to <i> ... </i>
+        parts[i] = re.sub(r'\\textit\{(.+?)\}', r'<i>\1</i>', parts[i])
+
+    outText = ''
+    for part in parts:
+        if part not in bad:
+            outText = outText + f"<p>{part}</p>"
+    return(outText)
 
 
 
@@ -192,17 +209,22 @@ def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION
 
     OUTLINE_HTML_FRAME = ""
     for k in range(len(presentation.sections)):
-        OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h1>{k+1} ) {presentation.sections[k].title}</h1>\n"
+        OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h2>{k+1} ) {presentation.sections[k].title}</h2>\n"
         for l in range(len(presentation.sections[k].subsections)):
-            OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h2 style='margin-left:5vw'>{k+1}.{l+1} ) {presentation.sections[k].subsections[l].title}</h2>\n"
+            OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h3 style='margin-left:5vw'>{k+1}.{l+1} ) {presentation.sections[k].subsections[l].title}</h3>\n"
 
     FRAMES = ""
     for k in range(len(presentation.sections)):
         for l in range(len(presentation.sections[k].subsections)):
             for m in range(len(presentation.sections[k].subsections[l].frames)):
-                FRAME_BODY = f"<h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2>"
+                FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div>"
+                if CSS_FILE_GENERATION:
+                    FRAME_BODY = FRAME_BODY + "<div class='frameContent'>"
+                else:
+                    FRAME_BODY = FRAME_BODY + "<div>"
                 for content in presentation.sections[k].subsections[l].frames[m].contents:
                     FRAME_BODY = FRAME_BODY + content
+                FRAME_BODY = FRAME_BODY + "</div>"
                 FRAME_BODY = f"<div>{FRAME_BODY}</div>"
                 if CSS_FILE_GENERATION:
                     FRAME_BODY = f"<div class='frame'>{FRAME_BODY}</div>"

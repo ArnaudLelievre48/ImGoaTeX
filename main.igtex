@@ -19,7 +19,10 @@ Wassup OG, how is it going ?
 \subsection{some other frames}
 
 \begin{frame}{Hey wassup}
-Test
+*Test*, \\
+
+
+\textbf{test en gras cette fois}, \\ **text en gras encore**, \n *** test en italic + bold *** \textit{test en italic}, \textbf{\textit{test en bold + italic}}
 \end{frame}
 
 \subsection{some other other frames}
