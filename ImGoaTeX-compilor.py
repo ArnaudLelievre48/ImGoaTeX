@@ -9,11 +9,13 @@ Token = namedtuple("Token", ["type", "value"])
 # regex patterns
 # (r'^\\begin\{frame\}\{([^}]*)\}', "BEGIN_FRAME"),
 # (r'^%*(.+?):\s*(.+)$', "META"),
+# (r'^\\begin\{frame\}\{(.+?)\}', "BEGIN_FRAME"),
+# (r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
 TOKEN_PATTERNS = [
     (r'^%(.+?):\s*(.+)$', "META"),
     (r'^\\section\{(.+?)\}', "SECTION"),
     (r'^\\subsection\{(.+?)\}', "SUBSECTION"),
-    (r'^\\begin\{frame\}\{(.+?)\}', "BEGIN_FRAME"),
+    (r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
     (r'^\\end\{frame\}', "END_FRAME"),
     (r'^\\video\{(.+?)\}', "VIDEO"),
     (r'^\\image\{(.+?)\}', "IMAGE"),
@@ -31,8 +33,19 @@ def tokenize(lines):
             m = re.match(pattern, line)
             if m:
                 if typ == "META":
+                    print(m.groups())
                     key, val = m.groups()
                     tokens.append(Token("META", (key.strip(), val.strip())))
+                elif typ == "BEGIN_FRAME":
+                    args = re.findall(r'\{([^}]*)\}', m.group(1))
+                    print(args)
+                    if m.groups():
+                        if len(args) > 2:
+                            raise Exception(f"you gave too much argument to the frame '{args[1]}', it only takes 2")
+                        else:
+                            tokens.append(Token(typ, tuple(args)))
+                    else:
+                        tokens.append(Token(typ, None))
                 else:
                     if m.groups():
                         tokens.append(Token(typ, m.group(1)))
@@ -65,8 +78,9 @@ class Subsection:
         self.frames = []
 
 class Frame:
-    def __init__(self, title=None):
+    def __init__(self, title=None, subtitle=None):
         self.title = title
+        self.subtitle = subtitle
         self.contents = []
 
 class Text:
@@ -110,7 +124,7 @@ def parse(tokens):
                 print("section :", token.value)
                 print()
             else:
-                raise("No name were given for the section")
+                raise Exception("No name were given for the section")
 
         if token.type == "SUBSECTION":
             if token.value:
@@ -120,24 +134,29 @@ def parse(tokens):
                     print("section : ", presentation.sections[-1].title, " - subsection :", token.value)
                     print()
                 else:
-                    raise("A subsection has been tried to be created, but no sections were declared beforehand")
+                    raise Exception("A subsection has been tried to be created, but no sections were declared beforehand")
             else:
-                raise("No name were given for the subsection")
+                raise Exception("No name were given for the subsection")
 
         if token.type == "BEGIN_FRAME":
             print(f"trying to start the frame '{token.value}', current frame is {current_frame}")
             if current_frame is not None:
-                raise(f"the frame {current_frame.title} has not been close, you cannot begin another one")
+                raise Exception(f"the frame {current_frame.title} has not been close, you cannot begin another one")
             if presentation.sections != []:
                 if presentation.sections[-1] != []:
-                    presentation.sections[-1].subsections[-1].frames.append( Frame(token.value) )
-                    print(f"frame '{token.value}' is created")
+                    if len(token.value) == 2:
+                        frame_title, frame_subtitle = token.value
+                        presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle) )
+                    else:
+                        frame_title = token.value[0]
+                        presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title) )
+                    print(f"frame '{token.value[0]}' is created")
                     current_frame = presentation.sections[-1].subsections[-1].frames[-1]
                     print(f"current frame is now '{current_frame.title}'")
                 else:
-                    raise("A frame has been tried to be created, but no subsection were declared beforehand")
+                    raise Exception("A frame has been tried to be created, but no subsection were declared beforehand")
             else:
-                raise("A frame has been tried to be created, but no section nor subsection were declared beforehand")
+                raise Exception("A frame has been tried to be created, but no section nor subsection were declared beforehand")
 
         if token.type == "END_FRAME":
             if current_frame is not None:
@@ -145,14 +164,14 @@ def parse(tokens):
                 current_frame = None
                 print(current_frame)
             else:
-                raise("You are not in a frame, you thus cannot end a frame")
+                raise Exception("You are not in a frame, you thus cannot end a frame")
 
         if token.type == "TEXT":
             if current_frame:
                 current_frame.contents.append( parse_text_to_html( token.value ) )
                 print(presentation.sections[-1].subsections[-1].frames[-1].contents)
             else:
-                raise("You are not in a frame, you thus cannot add text to a frame")
+                raise Exception("You are not in a frame, you thus cannot add text to a frame")
 
         if token.type == "VIDEO":
             if current_frame:
@@ -163,7 +182,7 @@ def parse(tokens):
                 except:
                     current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
             else:
-                raise("You are not in a frame, you thus cannot add text to a frame")
+                raise Exception("You are not in a frame, you thus cannot add text to a frame")
 
         if token.type == "IMAGE":
             if current_frame:
@@ -174,12 +193,11 @@ def parse(tokens):
                 except:
                     current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
             else:
-                raise("You are not in a frame, you thus cannot add text to a frame")
+                raise Exception("You are not in a frame, you thus cannot add text to a frame")
 
     return(presentation)
 
 
-# TODO : add text formating (bold, italics...)
 # parse text in html format
 def parse_text_to_html(text):
     parts = re.split(r'(\\\\|\\n)', text)
@@ -219,9 +237,15 @@ def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION
     for k in range(len(presentation.sections)):
         for l in range(len(presentation.sections[k].subsections)):
             for m in range(len(presentation.sections[k].subsections[l].frames)):
-                FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div>"
+                if presentation.sections[k].subsections[l].frames[m].subtitle:
+                    FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div>"
+                else:
+                    FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div>"
                 if CSS_FILE_GENERATION:
-                    FRAME_BODY = FRAME_BODY + "<div class='frameContent'>"
+                    if presentation.sections[k].subsections[l].frames[m].subtitle:
+                        FRAME_BODY = FRAME_BODY + "<div class='frameContentSub'>"
+                    else:
+                        FRAME_BODY = FRAME_BODY + "<div class='frameContent'>"
                 else:
                     FRAME_BODY = FRAME_BODY + "<div>"
                 for content in presentation.sections[k].subsections[l].frames[m].contents:

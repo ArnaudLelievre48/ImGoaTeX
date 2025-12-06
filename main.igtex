@@ -10,7 +10,7 @@ Hello, **ImGoaTeX**!
 \video{myvideo.mp4}
 \end{frame}
 
-\begin{frame}{Welcome again !}
+\begin{frame}{Welcome again !}{with a subtitle this time}
 Wassup OG, how is it going ?
 \image{mygif.gif}
 \end{frame}
