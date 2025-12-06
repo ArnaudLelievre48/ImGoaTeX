@@ -7,8 +7,10 @@ from dataclasses import dataclass, field
 Token = namedtuple("Token", ["type", "value"])
 
 # regex patterns
+# (r'^\\begin\{frame\}\{([^}]*)\}', "BEGIN_FRAME"),
+# (r'^%*(.+?):\s*(.+)$', "META"),
 TOKEN_PATTERNS = [
-    (r'^%*(.+?):\s*(.+)$', "META"),
+    (r'^%(.+?):\s*(.+)$', "META"),
     (r'^\\section\{(.+?)\}', "SECTION"),
     (r'^\\subsection\{(.+?)\}', "SUBSECTION"),
     (r'^\\begin\{frame\}\{(.+?)\}', "BEGIN_FRAME"),
