@@ -232,10 +232,7 @@ def parse_text_to_html(text):
 
 # takes the presentation data and generate the output file/files
 def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION=False):
-    if CSS_FILE_GENERATION:
-        PRESENTATION_FRAME = f"<div id='0'class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
-    else:
-        PRESENTATION_FRAME = f"<div id='0'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
+    PRESENTATION_FRAME = f"<div id='0'class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     OUTLINE_HTML_FRAME = ""
     for k in range(len(presentation.sections)):
@@ -252,34 +249,24 @@ def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION
                     FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div>"
                 else:
                     FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div>"
-                if CSS_FILE_GENERATION:
-                    if presentation.sections[k].subsections[l].frames[m].subtitle:
-                        FRAME_BODY = FRAME_BODY + "<div class='frameContentSub'>"
-                    else:
-                        FRAME_BODY = FRAME_BODY + "<div class='frameContent'>"
+                if presentation.sections[k].subsections[l].frames[m].subtitle:
+                    FRAME_BODY = FRAME_BODY + "<div class='frameContentSub'>"
                 else:
-                    FRAME_BODY = FRAME_BODY + "<div>"
+                    FRAME_BODY = FRAME_BODY + "<div class='frameContent'>"
                 for content in presentation.sections[k].subsections[l].frames[m].contents:
                     FRAME_BODY = FRAME_BODY + content
                 FRAME_BODY = FRAME_BODY + "</div>"
-                if CSS_FILE_GENERATION:
-                    FRAME_BODY = f"<div id='{frame_number}' class='frame'>{FRAME_BODY}</div>"
-                else:
-                    FRAME_BODY = f"<div id='{frame_number}'>{FRAME_BODY}</div>"
+                FRAME_BODY = f"<div id='{frame_number}' class='frame'>{FRAME_BODY}</div>"
                 frame_number+=1
                 FRAMES = FRAMES + FRAME_BODY
 
     OUTLINE_HTML_FRAME = f"<div>{OUTLINE_HTML_FRAME}</div>"
-    if CSS_FILE_GENERATION:
-        OUTLINE_HTML_FRAME = f"<div id='1' class='frame'><div class='outline'>{OUTLINE_HTML_FRAME}</div></div>"
-    else:
-        OUTLINE_HTML_FRAME = f"<div id='1'><div>{OUTLINE_HTML_FRAME}</div></div>"
+    OUTLINE_HTML_FRAME = f"<div id='1' class='frame'><div class='outline'>{OUTLINE_HTML_FRAME}</div></div>"
 
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
     with open(name, "w+") as outfile:
-        if CSS_FILE_GENERATION:
-            javascript = """
+        javascript = """
 <script>
 let currentSlide = 0;
 const slideInput = document.getElementById("slideNumber");
@@ -312,10 +299,21 @@ slideInput.addEventListener("keydown", e => {
   if (e.key === "ArrowDown") goToSlide(currentSlide - 1);
 });
 </script>
+            """
+        with open("styles.css", 'r') as style:
+            style_code = style.read()
+
+        css_variable = """
+:root {
+        --ar_width: 16;
+        --ar_height: 9;
+}
         """
-            outfile.write(f"""<!DOCTYPE html><html><head><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
+
+        if CSS_FILE_GENERATION:
+            outfile.write(f"""<!DOCTYPE html><html><head><style>{css_variable}</style><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
         else:
-            outfile.write(f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head><style>{css_variable}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
 
 
 if __name__ == "__main__" :
@@ -327,4 +325,5 @@ if __name__ == "__main__" :
         tokens = tokenize(lines)
         print(tokens)
         presentation = parse(tokens)
-        write_output_html_file(presentation, CSS_FILE_GENERATION=True)
+        #write_output_html_file(presentation, CSS_FILE_GENERATION=True)
+        write_output_html_file(presentation)

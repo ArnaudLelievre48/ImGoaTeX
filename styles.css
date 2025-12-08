@@ -1,8 +1,3 @@
-:root {
-	--ar_width: 4;
-	--ar_height: 3;
-}
-
 .overlay-menu {
 	transition: all ease-in-out 0.4s;
   position: fixed;
