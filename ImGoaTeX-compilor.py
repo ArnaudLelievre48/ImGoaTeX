@@ -11,6 +11,7 @@ Token = namedtuple("Token", ["type", "value"])
 # (r'^%*(.+?):\s*(.+)$', "META"),
 # (r'^\\begin\{frame\}\{(.+?)\}', "BEGIN_FRAME"),
 # (r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
+# (r'^\\image\{(.+?)\}', "IMAGE"),
 TOKEN_PATTERNS = [
     (r'^%(.+?):\s*(.+)$', "META"),
     (r'^\\section\{(.+?)\}', "SECTION"),
@@ -18,7 +19,7 @@ TOKEN_PATTERNS = [
     (r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
     (r'^\\end\{frame\}', "END_FRAME"),
     (r'^\\video\{(.+?)\}', "VIDEO"),
-    (r'^\\image\{(.+?)\}', "IMAGE"),
+    (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
     (r'^\\note\{(.+?)\}', "NOTE"),
 ]
 
@@ -37,15 +38,23 @@ def tokenize(lines):
                     key, val = m.groups()
                     tokens.append(Token("META", (key.strip(), val.strip())))
                 elif typ == "BEGIN_FRAME":
-                    args = re.findall(r'\{([^}]*)\}', m.group(1))
-                    print(args)
+                    args_frame = re.findall(r'\{([^}]*)\}', m.group(1))
+                    print(args_frame)
                     if m.groups():
-                        if len(args) > 2:
-                            raise Exception(f"you gave too much argument to the frame '{args[1]}', it only takes 2")
+                        if len(args_frame) > 2:
+                            raise Exception(f"you gave too much argument to the frame '{args_frame[1]}', it only takes 2")
                         else:
-                            tokens.append(Token(typ, tuple(args)))
+                            tokens.append(Token(typ, tuple(args_frame)))
                     else:
                         tokens.append(Token(typ, None))
+                elif typ == "IMAGE":
+                    if m.groups()[1]:
+                        image_source, args_img = m.group(1), m.group(2).split(",")
+                        print("args_img = ", args_img)
+                        print("IMAGE : ", m.groups())
+                        tokens.append( Token(typ, image_source) )
+                    else:
+                        tokens.append( Token(typ, m.group(1)) )
                 else:
                     if m.groups():
                         tokens.append(Token(typ, m.group(1)))
@@ -223,9 +232,10 @@ def parse_text_to_html(text):
 
 # takes the presentation data and generate the output file/files
 def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION=False):
-    PRESENTATION_FRAME = f"<div><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
     if CSS_FILE_GENERATION:
-        PRESENTATION_FRAME = f"<div class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
+        PRESENTATION_FRAME = f"<div id='0'class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
+    else:
+        PRESENTATION_FRAME = f"<div id='0'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     OUTLINE_HTML_FRAME = ""
     for k in range(len(presentation.sections)):
@@ -234,6 +244,7 @@ def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION
             OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h3 style='margin-left:5vw'>{k+1}.{l+1} ) {presentation.sections[k].subsections[l].title}</h3>\n"
 
     FRAMES = ""
+    frame_number = 2
     for k in range(len(presentation.sections)):
         for l in range(len(presentation.sections[k].subsections)):
             for m in range(len(presentation.sections[k].subsections[l].frames)):
@@ -251,20 +262,58 @@ def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION
                 for content in presentation.sections[k].subsections[l].frames[m].contents:
                     FRAME_BODY = FRAME_BODY + content
                 FRAME_BODY = FRAME_BODY + "</div>"
-                FRAME_BODY = f"<div>{FRAME_BODY}</div>"
                 if CSS_FILE_GENERATION:
-                    FRAME_BODY = f"<div class='frame'>{FRAME_BODY}</div>"
+                    FRAME_BODY = f"<div id='{frame_number}' class='frame'>{FRAME_BODY}</div>"
+                else:
+                    FRAME_BODY = f"<div id='{frame_number}'>{FRAME_BODY}</div>"
+                frame_number+=1
                 FRAMES = FRAMES + FRAME_BODY
 
     OUTLINE_HTML_FRAME = f"<div>{OUTLINE_HTML_FRAME}</div>"
     if CSS_FILE_GENERATION:
-        OUTLINE_HTML_FRAME = f"<div class='frame'><div class='outline'>{OUTLINE_HTML_FRAME}</div></div>"
+        OUTLINE_HTML_FRAME = f"<div id='1' class='frame'><div class='outline'>{OUTLINE_HTML_FRAME}</div></div>"
+    else:
+        OUTLINE_HTML_FRAME = f"<div id='1'><div>{OUTLINE_HTML_FRAME}</div></div>"
 
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
     with open(name, "w+") as outfile:
         if CSS_FILE_GENERATION:
-            outfile.write(f"""<!DOCTYPE html><html><head><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
+            javascript = """
+<script>
+let currentSlide = 0;
+const slideInput = document.getElementById("slideNumber");
+
+// Find all slides with numeric IDs and sort them
+const slides = Array.from(document.querySelectorAll("div[id]"))
+  .filter(div => !isNaN(div.id))
+  .sort((a, b) => Number(a.id) - Number(b.id));
+
+// Function to go to a slide
+const goToSlide = n => {
+  const slide = slides.find(s => Number(s.id) === n);
+  if (!slide) return;
+  slide.scrollIntoView({ behavior: "smooth", block: "center" });
+  currentSlide = n;
+  slideInput.value = currentSlide;
+};
+
+// On page load, go to slide 0
+goToSlide(0);
+
+// Up/Down buttons
+document.getElementById("up").addEventListener("click", () => goToSlide(currentSlide - 1));
+document.getElementById("down").addEventListener("click", () => goToSlide(currentSlide + 1));
+
+// Input events
+slideInput.addEventListener("change", () => goToSlide(Number(slideInput.value)));
+slideInput.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") goToSlide(currentSlide + 1);
+  if (e.key === "ArrowDown") goToSlide(currentSlide - 1);
+});
+</script>
+        """
+            outfile.write(f"""<!DOCTYPE html><html><head><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
         else:
             outfile.write(f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><title>{presentation.title}</title></head><body>{body}</body></html>""")
 

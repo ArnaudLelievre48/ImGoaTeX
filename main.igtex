@@ -12,7 +12,7 @@ Hello, **ImGoaTeX**!
 
 \begin{frame}{Welcome again !}{with a subtitle this time}
 Wassup OG, how is it going ?
-\image{mygif.gif}
+\image{mygif.gif}[position=right, size=1]
 \end{frame}
 
 \section{Premiere partie}
