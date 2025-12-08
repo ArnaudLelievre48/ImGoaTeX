@@ -186,7 +186,8 @@ def parse(tokens):
             if current_frame:
                 try:
                     with open("medias/"+token.value, 'r') as _:
-                        video_html = f"<video width='320px'><source src='medias/{token.value}' type='video/mp4'>Your browser cannot read the video file '{token.value}'</video>"
+                        video_html = f"<video width='300px' src='medias/{token.value}' controls autoplay loop muted></video>"
+                        print("VIDEO : ", token.value)
                         current_frame.contents.append( video_html )
                 except:
                     current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
@@ -307,6 +308,13 @@ slideInput.addEventListener("keydown", e => {
 :root {
         --ar_width: 16;
         --ar_height: 9;
+        --unit_x: calc( min(90vw, calc( ( var(--ar_width) / var(--ar_height) ) * 90vh) )/100 );
+        --unit_y: calc( min(90vh, calc( ( var(--ar_height) / var(--ar_width) ) * 90vw) )/100 );
+        --bgcolor: #faf3e1;
+        --color1: #6b3016;
+        --color2: #783a1f;
+        --color3: #ad5e3b;
+        --color4: #362821;
 }
         """
 
