@@ -13,7 +13,7 @@ Hello, welcome to coding in **ImGoaTeX**!
 \subsection{medias}
 
 \begin{frame}{Video, with a size=1}
-\video{myvideo.mp4}[size=1]
+\video{myvideo.mkv}[size=1]
 # Commented out for loading and testing purposes
 \end{frame}
 
@@ -23,8 +23,8 @@ Hello, welcome to coding in **ImGoaTeX**!
 # Commented out for loading and testing purposes
 \end{frame}
 
-\begin{frame}{images}{with a size=1}
-\image{mygif.gif}[position=right, size=1]
+\begin{frame}{images}{with a size=2}
+\image{mygif.gif}[position=right, size=2]
 # Commented out for loading and testing purposes
 \end{frame}
 

@@ -82,6 +82,7 @@ body {
 	margin-top: calc( (100vh - min(90vh, calc( ( var(--ar_height) / var(--ar_width) ) * 90vw )) ) / 2);
 	margin-bottom: calc( (100vh - min(90vh, calc( ( var(--ar_height) / var(--ar_width) ) * 90vw )) ) / 2);
 	border-radius: 10pt;
+	overflow: hidden;
 }
 
 .outline {
@@ -100,6 +101,7 @@ body {
 	height: 20%;
 	width: 100%;
 	background-color: var(--color1);
+	overflow: hidden;
 }
 
 .frameTitle h2 {
@@ -115,6 +117,7 @@ body {
 	height: 7%;
 	width: 100%;
 	background-color: var(--color2);
+	overflow: hidden;
 }
 .frameSubtitle h3 {
 	margin-left: calc(10*var(--unit_x));
@@ -132,6 +135,7 @@ body {
 	width: 90%;
 	padding-left: 5%;
 	padding-right: 5%;
+	overflow: hidden;
 }
 
 .frameContentSub {
@@ -145,6 +149,7 @@ body {
 	width: 90%;
 	padding-left: 5%;
 	padding-right: 5%;
+	overflow: hidden;
 }
 
 
@@ -168,17 +173,17 @@ p {
 }
 
 .size_1 {
-	width: calc(60*var(--unit_x)) !important;
+	width: min(90%, calc(60*var(--unit_x))) !important;
 }
 
 .size_2 {
-	width: calc(30*var(--unit_x)) !important;
+	width: min(90%, calc(30*var(--unit_x))) !important;
 }
 
 .size_3 {
-	width: calc(15*var(--unit_x)) !important;
+	width: min(90%, calc(15*var(--unit_x))) !important;
 }
 
 .size_4 {
-	width: calc(7.5*var(--unit_x)) !important;
+	width: min(90%, calc(7.5*var(--unit_x))) !important;
 }
