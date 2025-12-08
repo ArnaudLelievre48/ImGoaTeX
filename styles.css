@@ -150,19 +150,20 @@ body {
 
 
 h1 {
-	font-size: 4vw;
+	font-size: calc(4*var(--unit_x));
 	color: var(--color1);
 }
 h2 {
-	font-size: 2vw;
+	font-size: calc(2*var(--unit_x));
+	color: var(--color1);
 	color: var(--color2)
 }
 h3 {
-	font-size: 1.25vw;
+	font-size: calc(1.25*var(--unit_x));
 	color: var(--color3)
 }
 p {
-	font-size: 1vw;
+	font-size: calc(1*var(--unit_x));
 	color: var(--color4)
 }
 

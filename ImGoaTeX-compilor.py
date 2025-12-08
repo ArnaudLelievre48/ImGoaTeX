@@ -4,6 +4,7 @@ import datetime
 from dataclasses import dataclass, field
 import argparse
 from pathlib import Path
+import base64
 
 
 
@@ -21,8 +22,10 @@ TOKEN_PATTERNS = [
     (r'^\\subsection\{(.+?)\}', "SUBSECTION"),
     (r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
     (r'^\\end\{frame\}', "END_FRAME"),
-    (r'^\\video\{(.+?)\}', "VIDEO"),
+    (r'^\\video\{([^}]*)\}(?:\[([^\]]*)\])?', "VIDEO"),
     (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
+    (r'^\\item\{(.+?)\}', "ITEM"),
+    (r'^\\subitem\{(.+?)\}', "SUBITEM"),
     (r'^\\note\{(.+?)\}', "NOTE"),
 ]
 
@@ -30,7 +33,7 @@ def tokenize(lines):
     tokens = []
     for line in lines:
         line = line.strip()
-        if not line:
+        if not line or line[0] == '#':
             continue
         matched = False
         for pattern, typ in TOKEN_PATTERNS:
@@ -50,6 +53,13 @@ def tokenize(lines):
                             tokens.append(Token(typ, tuple(args_frame)))
                     else:
                         tokens.append(Token(typ, None))
+                elif typ == "VIDEO":
+                    if m.groups()[1]:
+                        video_source, args_vid = m.group(1), m.group(2).split(",")
+                        tokens.append( Token(typ, tuple([video_source, args_vid]) ) )
+                    else:
+                        tokens.append( Token(typ, m.group(1)) )
+
                 elif typ == "IMAGE":
                     if m.groups()[1]:
                         image_source, args_img = m.group(1), m.group(2).split(",")
@@ -95,6 +105,14 @@ class Frame:
         self.subtitle = subtitle
         self.contents = []
 
+class Item:
+    def __init__(self, contents):
+        self.contents = contents
+
+class Subitem:
+    def __init__(self, contents):
+        self.contents = contents
+
 class Text:
     def __init__(self, text):
         self.text = text
@@ -104,7 +122,7 @@ class Video:
         self.url = url
 
 
-def parse(tokens):
+def parse(tokens, PORTABLE_MEDIAS=True):
     presentation = Presentation()
     current_frame = None
 
@@ -178,6 +196,17 @@ def parse(tokens):
             else:
                 raise Exception("You are not in a frame, you thus cannot end a frame")
 
+        if token.type == "ITEM":
+            #print(token.value)
+            if current_frame:
+                current_frame.contents.append( parse_text_to_html( "- " + token.value ) )
+        if token.type == "SUBITEM":
+            #print(token.value)
+            if current_frame:
+                current_frame.contents.append( parse_text_to_html( "-- " + token.value ) )
+
+
+
         if token.type == "TEXT":
             if current_frame:
                 current_frame.contents.append( parse_text_to_html( token.value ) )
@@ -187,13 +216,34 @@ def parse(tokens):
 
         if token.type == "VIDEO":
             if current_frame:
-                try:
-                    with open("medias/"+token.value, 'r') as _:
-                        video_html = f"<video style='width: calc(20*var(--unit_x))' src='medias/{token.value}' controls autoplay loop muted></video>"
-                        #print("VIDEO : ", token.value)
-                        current_frame.contents.append( video_html )
-                except:
-                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
+                if type(token.value) != type( tuple() ):
+                    try:
+                        with open("medias/"+token.value, 'rb') as vid:
+                            if PORTABLE_MEDIAS:
+                                encoded_video = base64.b64encode(vid.read()).decode("utf-8")
+                                video_html = f"<video style='width: calc(20*var(--unit_x))' src='data:video/mp4;base64,{encoded_video}' controls autoplay loop muted></video>"
+                            else:
+                                video_html = f"<video style='width: calc(20*var(--unit_x))' src='medias/{token.value}' controls autoplay loop muted></video>"
+                            current_frame.contents.append( video_html )
+                    except:
+                        current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
+                else:
+                    try:
+                        with open("medias/"+token.value[0], 'rb') as vid:
+                            #print("VIDEO OPTIONS : ", token.value[1])
+                            classes = ""
+                            for arg in token.value[1]:
+                                arg = arg.replace(" ", "")
+                                arg = arg.replace("=", "_")
+                                classes = classes + arg + " "
+                            if PORTABLE_MEDIAS:
+                                encoded_video = base64.b64encode(vid.read()).decode("utf-8")
+                                video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='data:video/mp4;base64,{encoded_video}' controls autoplay loop muted></video>"
+                            else:
+                                video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[0]}' controls autoplay loop muted></video>"
+                            current_frame.contents.append( video_html )
+                    except:
+                        current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
             else:
                 raise Exception("You are not in a frame, you thus cannot add text to a frame")
 
@@ -201,25 +251,30 @@ def parse(tokens):
             if current_frame:
                 if type(token.value) != type( tuple() ):
                     try:
-                        with open("medias/"+token.value, 'r') as _:
-                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value}'></img>"
-                            current_frame.contents.append( image_html )
+                        with open("medias/"+token.value, 'rb') as img:
+                            if PORTABLE_MEDIAS:
+                                encoded_image = base64.b64encode(img.read()).decode("utf-8")
+                                image_html = f"<img style='width: calc(20*var(--unit_x))' src='data:image/png;base64,{encoded_image}'</img>"
+                            else:
+                                image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value}'</img>"
+                        current_frame.contents.append( image_html )
                     except:
                         current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
                 else:
                     try:
-                        with open("medias/"+token.value[0], 'r') as _:
-                            print("IMAGE OPTIONS : ", token.value[1])
-                            if token.value[1] != []:
-                                classes = ""
-                                for arg in token.value[1]:
-                                    arg = arg.replace(" ", "")
-                                    arg = arg.replace("=", "_")
-                                    classes = classes + arg + " "
-                                image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[0]}'></img>"
+                        with open("medias/"+token.value[0], 'rb') as img:
+                            #print("IMAGE OPTIONS : ", token.value[1])
+                            classes = ""
+                            for arg in token.value[1]:
+                                arg = arg.replace(" ", "")
+                                arg = arg.replace("=", "_")
+                                classes = classes + arg + " "
+                            if PORTABLE_MEDIAS:
+                                encoded_image = base64.b64encode(img.read()).decode("utf-8")
+                                image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='data:image/png;base64,{encoded_image}'></img>"
                             else:
-                                image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value[0]}'></img>"
-                            current_frame.contents.append( image_html )
+                                image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[1]}'></img>"
+                        current_frame.contents.append( image_html )
                     except:
                         current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
             else:
@@ -285,8 +340,7 @@ def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION
 
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
-    with open(name, "w+") as outfile:
-        javascript = """
+    javascript = """
 <script>
 let currentSlide = 0;
 const slideInput = document.getElementById("slideNumber");
@@ -320,10 +374,10 @@ slideInput.addEventListener("keydown", e => {
 });
 </script>
             """
-        with open("styles.css", 'r') as style:
-            style_code = style.read()
+    with open("styles.css", 'r') as style:
+        style_code = style.read()
 
-        css_variable = """
+    css_variable = """
 :root {
         --ar_width: 16;
         --ar_height: 9;
@@ -337,6 +391,7 @@ slideInput.addEventListener("keydown", e => {
 }
         """
 
+    with open(name, "w+") as outfile:
         if CSS_FILE_GENERATION:
             outfile.write(f"""<!DOCTYPE html><html><head><style>{css_variable}</style><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
         else:
