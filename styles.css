@@ -165,3 +165,19 @@ p {
 	font-size: 1vw;
 	color: var(--color4)
 }
+
+.size_1 {
+	width: calc(60*var(--unit_x)) !important;
+}
+
+.size_2 {
+	width: calc(30*var(--unit_x)) !important;
+}
+
+.size_3 {
+	width: calc(15*var(--unit_x)) !important;
+}
+
+.size_4 {
+	width: calc(7.5*var(--unit_x)) !important;
+}

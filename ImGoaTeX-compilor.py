@@ -1,8 +1,11 @@
 import re
 from collections import namedtuple
-import sys
 import datetime
 from dataclasses import dataclass, field
+import argparse
+from pathlib import Path
+
+
 
 Token = namedtuple("Token", ["type", "value"])
 
@@ -34,12 +37,12 @@ def tokenize(lines):
             m = re.match(pattern, line)
             if m:
                 if typ == "META":
-                    print(m.groups())
+                    #print(m.groups())
                     key, val = m.groups()
                     tokens.append(Token("META", (key.strip(), val.strip())))
                 elif typ == "BEGIN_FRAME":
                     args_frame = re.findall(r'\{([^}]*)\}', m.group(1))
-                    print(args_frame)
+                    #print(args_frame)
                     if m.groups():
                         if len(args_frame) > 2:
                             raise Exception(f"you gave too much argument to the frame '{args_frame[1]}', it only takes 2")
@@ -50,9 +53,9 @@ def tokenize(lines):
                 elif typ == "IMAGE":
                     if m.groups()[1]:
                         image_source, args_img = m.group(1), m.group(2).split(",")
-                        print("args_img = ", args_img)
-                        print("IMAGE : ", m.groups())
-                        tokens.append( Token(typ, image_source) )
+                        #print("args_img = ", args_img)
+                        #print("IMAGE : ", m.groups())
+                        tokens.append( Token(typ, tuple([image_source, args_img]) ) )
                     else:
                         tokens.append( Token(typ, m.group(1)) )
                 else:
@@ -111,27 +114,27 @@ def parse(tokens):
             key, val =token.value
             if key == "title":
                 presentation.title = val
-                print("title :", val)
+                #print("title :", val)
             if key == "subtitle":
                 presentation.subtitle = val
-                print("subtitle :", val)
+                #print("subtitle :", val)
             if key == "author":
                 presentation.author = val
-                print("author :", val)
+                #print("author :", val)
             if key == "date":
                 try:
                     presentaton.date = datetime.strptime(val)
-                    print("date:", datetime.strptime(val))
+                    #print("date:", datetime.strptime(val))
                 except:
-                    print("date:", presentation.date)
+                    #print("date:", presentation.date)
                     continue
 
         if token.type == "SECTION":
             if token.value:
                 presentation.sections.append( Section(token.value) )
-                print()
-                print("section :", token.value)
-                print()
+                #print()
+                #print("section :", token.value)
+                #print()
             else:
                 raise Exception("No name were given for the section")
 
@@ -139,16 +142,16 @@ def parse(tokens):
             if token.value:
                 if presentation.sections != []:
                     presentation.sections[-1].subsections.append( Subsection(token.value) )
-                    print()
-                    print("section : ", presentation.sections[-1].title, " - subsection :", token.value)
-                    print()
+                    #print()
+                    #print("section : ", presentation.sections[-1].title, " - subsection :", token.value)
+                    #print()
                 else:
                     raise Exception("A subsection has been tried to be created, but no sections were declared beforehand")
             else:
                 raise Exception("No name were given for the subsection")
 
         if token.type == "BEGIN_FRAME":
-            print(f"trying to start the frame '{token.value}', current frame is {current_frame}")
+            #print(f"trying to start the frame '{token.value}', current frame is {current_frame}")
             if current_frame is not None:
                 raise Exception(f"the frame {current_frame.title} has not been close, you cannot begin another one")
             if presentation.sections != []:
@@ -159,9 +162,9 @@ def parse(tokens):
                     else:
                         frame_title = token.value[0]
                         presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title) )
-                    print(f"frame '{token.value[0]}' is created")
+                    #print(f"frame '{token.value[0]}' is created")
                     current_frame = presentation.sections[-1].subsections[-1].frames[-1]
-                    print(f"current frame is now '{current_frame.title}'")
+                    #print(f"current frame is now '{current_frame.title}'")
                 else:
                     raise Exception("A frame has been tried to be created, but no subsection were declared beforehand")
             else:
@@ -169,16 +172,16 @@ def parse(tokens):
 
         if token.type == "END_FRAME":
             if current_frame is not None:
-                print(f"CLOSING THE FRAME '{current_frame.title}'")
+                #print(f"CLOSING THE FRAME '{current_frame.title}'")
                 current_frame = None
-                print(current_frame)
+                #print(current_frame)
             else:
                 raise Exception("You are not in a frame, you thus cannot end a frame")
 
         if token.type == "TEXT":
             if current_frame:
                 current_frame.contents.append( parse_text_to_html( token.value ) )
-                print(presentation.sections[-1].subsections[-1].frames[-1].contents)
+                #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
             else:
                 raise Exception("You are not in a frame, you thus cannot add text to a frame")
 
@@ -186,8 +189,8 @@ def parse(tokens):
             if current_frame:
                 try:
                     with open("medias/"+token.value, 'r') as _:
-                        video_html = f"<video width='300px' src='medias/{token.value}' controls autoplay loop muted></video>"
-                        print("VIDEO : ", token.value)
+                        video_html = f"<video style='width: calc(20*var(--unit_x))' src='medias/{token.value}' controls autoplay loop muted></video>"
+                        #print("VIDEO : ", token.value)
                         current_frame.contents.append( video_html )
                 except:
                     current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
@@ -196,12 +199,29 @@ def parse(tokens):
 
         if token.type == "IMAGE":
             if current_frame:
-                try:
-                    with open("medias/"+token.value, 'r') as _:
-                        image_html = f"<img width='320px' src='medias/{token.value}'></img>"
-                        current_frame.contents.append( image_html )
-                except:
-                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
+                if type(token.value) != type( tuple() ):
+                    try:
+                        with open("medias/"+token.value, 'r') as _:
+                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value}'></img>"
+                            current_frame.contents.append( image_html )
+                    except:
+                        current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
+                else:
+                    try:
+                        with open("medias/"+token.value[0], 'r') as _:
+                            print("IMAGE OPTIONS : ", token.value[1])
+                            if token.value[1] != []:
+                                classes = ""
+                                for arg in token.value[1]:
+                                    arg = arg.replace(" ", "")
+                                    arg = arg.replace("=", "_")
+                                    classes = classes + arg + " "
+                                image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[0]}'></img>"
+                            else:
+                                image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value[0]}'></img>"
+                            current_frame.contents.append( image_html )
+                    except:
+                        current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
             else:
                 raise Exception("You are not in a frame, you thus cannot add text to a frame")
 
@@ -212,7 +232,6 @@ def parse(tokens):
 def parse_text_to_html(text):
     parts = re.split(r'(\\\\|\\n)', text)
     bad = {r"\\", r"\n", r""}
-    print("PARTS = ", parts)
     for i in range(len(parts)):
         # ** ... ** to <b> ... </b>
         parts[i] = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', parts[i])
@@ -325,13 +344,23 @@ slideInput.addEventListener("keydown", e => {
 
 
 if __name__ == "__main__" :
+    arguments_parser = argparse.ArgumentParser()
+    arguments_parser.add_argument("filename", help="The file to compile")
+    args = arguments_parser.parse_args()
+
+    if args.filename:
+        file_path = Path(args.filename)
+        if not file_path.is_file():
+            raise Exception(f"Error: '{args.filename}' does not exist or is not a file.")
+            exit(1)
+        else:
+            file = args.filename
+
     file = "main.igtex"
     with open(file, 'r') as igtexFile:
         lines = igtexFile.readlines()
-        print(lines)
-        print()
         tokens = tokenize(lines)
-        print(tokens)
+        #print(tokens)
         presentation = parse(tokens)
         #write_output_html_file(presentation, CSS_FILE_GENERATION=True)
         write_output_html_file(presentation)

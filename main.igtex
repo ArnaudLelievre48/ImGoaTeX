@@ -6,26 +6,34 @@
 \subsection{some frames}
 
 \begin{frame}{Welcome}
-Hello, **ImGoaTeX**!
+Hello, welcome to coding in **ImGoaTeX**!
+\end{frame}
+
+\section{tests of features}
+\subsection{medias}
+
+\begin{frame}{Video}
 \video{myvideo.mp4}
 \end{frame}
 
-\begin{frame}{Welcome again !}{with a subtitle this time}
-Wassup OG, how is it going ?
+
+\begin{frame}{images}{with no arguments}
+\image{mygif.gif}
+\end{frame}
+
+\begin{frame}{images}{with a size=1}
 \image{mygif.gif}[position=right, size=1]
 \end{frame}
 
-\section{Premiere partie}
-\subsection{some other frames}
-
-\begin{frame}{Hey wassup : lets do some testing !}
-*Test*, \\
-
-
-\textbf{test en gras cette fois}, \\ **text en gras encore**, \n *** test en italic + bold *** \textit{test en italic}, \textbf{\textit{test en bold + italic}}
+\begin{frame}{image size=3}
+\image{archgif.gif}[position=right, size=3]
 \end{frame}
 
-\subsection{some other other frames}
-\begin{frame}{Hey wassup, another one}
-test again
+\subsection{tests du texte}
+
+\begin{frame}{Hey wassup : lets do some testing !}
+*Test*, italic avec les etoiles \\
+\textbf{test en gras cette fois}, avec textbf \\ **text en gras encore**, avec les etoiles
+
+\n *** test en italic + bold *** \textit{test en italic}, \textbf{\textit{test en bold + italic}} tests combinés de textbf, textit et des etoiles
 \end{frame}
