@@ -41,3 +41,9 @@ Hello, welcome to coding in **ImGoaTeX**!
 \item{tiret}
 \subitem{sous-tiret}
 \end{frame}
+
+\subsection{tests du texte}
+\begin{frame}{tests equations}
+Intégrale gaussienne : $\int_{-\infty}^{+\infty} e^{-x^2} dx = \sqrt{\pi}$
+Intégrale gaussienne double signe dollard : $$\int_{-\infty}^{+\infty} e^{-x^2} dx = \sqrt{\pi}$$
+\end{frame}

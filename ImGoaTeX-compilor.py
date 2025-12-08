@@ -389,13 +389,52 @@ slideInput.addEventListener("keydown", e => {
         --color3: #ad5e3b;
         --color4: #362821;
 }
+    """
+    with open("katex/katex_min.css", 'r') as katex_min_css_file:
+        katex_min_css = f"<style>{katex_min_css_file.read()}</style>"
+    with open("katex/katex_min.js", 'r') as katex_min_js_file:
+        katex_min_js = f"<script defer>{katex_min_js_file.read()}</script>"
+    with open("katex/auto_render_min.js", 'r') as katex_render_min_js_file:
+        katex_render_min_js = f"<script defer>{katex_render_min_js_file.read()}</script>"
+        katex_render_min_js += """
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                { left: "$$", right: "$$", display: true },
+                { left: "$", right: "$",  display: false }
+            ]
+        });
+    });
+</script>
         """
+    try:
+        with open("katex/katex_min.css", 'r') as katex_min_css_file:
+            katex_min_css = f"<style>{katex_min_css_file.read()}</style>"
+        with open("katex/katex_min.js", 'r') as katex_min_js_file:
+            katex_min_js = f"<script defer>{katex_min_js_file.read()}</script>"
+        with open("katex/auto_render_min.js", 'r') as katex_render_min_js_file:
+            katex_render_min_js = f"<script defer>{katex_render_min_js_file.read()}</script>"
+            katex_render_min_js += """
+                <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$",  display: false }
+                ]
+            });
+        });
+    </script>
+            """
+    except:
+        raise Exception("KaTeX files not found, you may run `install.sh`")
 
     with open(name, "w+") as outfile:
         if CSS_FILE_GENERATION:
-            outfile.write(f"""<!DOCTYPE html><html><head><style>{css_variable}</style><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
         else:
-            outfile.write(f"""<!DOCTYPE html><html><head><style>{css_variable}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
 
 
 if __name__ == "__main__" :
