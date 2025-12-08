@@ -86,7 +86,7 @@ class Presentation:
         self.title = title
         self.subtitle = subtitle
         self.author = author
-        self.date = datetime.datetime.now()
+        self.date = datetime.datetime.now().strftime("%a %d %b %Y")
         self.sections = []
 
 class Section:
