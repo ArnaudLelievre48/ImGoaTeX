@@ -187,3 +187,61 @@ p {
 .size_4 {
 	width: min(90%, calc(7.5*var(--unit_x))) !important;
 }
+
+.inline {
+	position: relative;
+}
+
+.position_right {
+	position: absolute;
+	right: calc( (100vw - 100*var(--unit_x) )/2 + 3*var(--unit_x) );
+	z-index: 9999;
+}
+
+.position_right-top {
+	position: absolute;
+	right: calc( (100vw - 100*var(--unit_x) )/2 + 3*var(--unit_x) );
+	z-index: 9999;
+}
+
+.frameContentSub .position_right-top {
+	padding-bottom: calc( 28*var(--unit_y) );
+}
+
+.frameContent .position_right-top {
+	padding-bottom: calc( 35*var(--unit_y) );
+}
+
+.position_right-bottom {
+	position: absolute;
+	right: calc( (100vw - 100*var(--unit_x) )/2 + 3*var(--unit_x) );
+	padding-top: calc( 35*var(--unit_y) );
+	z-index: 9999;
+}
+
+.position_left {
+	position: absolute;
+	left: calc( (100vw - 100*var(--unit_x) )/2 + 3*var(--unit_x) );
+	z-index: 9999;
+}
+
+.position_left-top {
+	position: absolute;
+	left: calc( (100vw - 100*var(--unit_x) )/2 + 3*var(--unit_x) );
+	z-index: 9999;
+}
+
+.frameContentSub .position_left-top {
+	padding-bottom: calc( 28*var(--unit_y) );
+}
+
+.frameContent .position_left-top {
+	padding-bottom: calc( 35*var(--unit_y) );
+}
+
+.position_left-bottom {
+	position: absolute;
+	left: calc( (100vw - 100*var(--unit_x) )/2 + 3*var(--unit_x) );
+	padding-top: calc( 35*var(--unit_y) );
+	z-index: 9999;
+}

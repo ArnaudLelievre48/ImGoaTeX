@@ -2,6 +2,8 @@
 %subtitle: My Presentation : a test actually
 %author: Arnaud Lelièvre
 
+# here is a comment : this line is discarded from the compiler
+
 \section{Intro}
 \subsection{some frames}
 
@@ -14,22 +16,32 @@ Hello, welcome to coding in **ImGoaTeX**!
 
 \begin{frame}{Video, with a size=1}
 \video{myvideo.mkv}[size=1]
-# Commented out for loading and testing purposes
 \end{frame}
 
 
 \begin{frame}{images}{with no arguments}
 \image{mygif.gif}
-# Commented out for loading and testing purposes
 \end{frame}
 
-\begin{frame}{images}{with a size=2}
-\image{mygif.gif}[position=right, size=2]
-# Commented out for loading and testing purposes
+\begin{frame}{images}{with a size=2, right-top, with a subtitle}
+\image{mygif.gif}[position=right-top, size=2]
 \end{frame}
+
+\begin{frame}{imageswith a size=2, left-bottom, with no subtitle}
+\image{mygif.gif}[position=left-bottom, size=2]
+\end{frame}
+
+\begin{frame}{imageswith a size=2, right-bottom}
+\image{mygif.gif}[position=right-bottom, size=2]
+\end{frame}
+
+
+
 
 \begin{frame}{image size=3}
+here is an image of size 3 
 \image{archgif.gif}[position=right, size=3]
+here is some text that is written after the image
 \end{frame}
 
 \subsection{tests du texte}
