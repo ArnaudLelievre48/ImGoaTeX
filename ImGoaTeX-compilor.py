@@ -7,15 +7,9 @@ from pathlib import Path
 import base64
 
 
-
 Token = namedtuple("Token", ["type", "value"])
 
 # regex patterns
-# (r'^\\begin\{frame\}\{([^}]*)\}', "BEGIN_FRAME"),
-# (r'^%*(.+?):\s*(.+)$', "META"),
-# (r'^\\begin\{frame\}\{(.+?)\}', "BEGIN_FRAME"),
-# (r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
-# (r'^\\image\{(.+?)\}', "IMAGE"),
 TOKEN_PATTERNS = [
     (r'^%(.+?):\s*(.+)$', "META"),
     (r'^\\section\{(.+?)\}', "SECTION"),
@@ -26,6 +20,7 @@ TOKEN_PATTERNS = [
     (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
     (r'^\\item\{(.+?)\}', "ITEM"),
     (r'^\\subitem\{(.+?)\}', "SUBITEM"),
+    (r'^\\subsubitem\{(.+?)\}', "SUBSUBITEM"),
     (r'^\\note\{(.+?)\}', "NOTE"),
 ]
 
@@ -34,7 +29,7 @@ TOKEN_PATTERNS = [
 def tokenize_expression(expression):
     for pattern, typ in TOKEN_PATTERNS:
         matching = re.match(pattern, expression)
-        if matching:
+        if matching: # if a certain pattern has been recognized, then it's not plain text -> we treat it
 
             if typ == "META":
                 key, val = matching.groups()
@@ -66,15 +61,19 @@ def tokenize_expression(expression):
 
             elif typ == "ITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression(matching.group(1))
-                    print(token_inside)
+                    token_inside = tokenize_expression("● " + matching.group(1))
                 return ( Token(typ, token_inside) )
 
             elif typ == "SUBITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression(matching.group(1))
-                    print(token_inside)
+                    token_inside = tokenize_expression("○ " + matching.group(1))
                 return ( Token(typ, token_inside) )
+
+            elif typ == "SUBSUBITEM":
+                if matching.group(1):
+                    token_inside = tokenize_expression("◌ " + matching.group(1))
+                return ( Token(typ, token_inside) )
+
 
 
             else:
@@ -98,7 +97,7 @@ def tokenize_lines(lines):
 
 
 
-# data structure
+# data structure for each token type
 class Presentation:
     def __init__(self, title=None, subtitle=None, author=None, date=None):
         self.title = title
@@ -131,6 +130,10 @@ class Subitem:
     def __init__(self, contents):
         self.contents = contents
 
+class SubSubitem:
+    def __init__(self, contents):
+        self.contents = contents
+
 class Text:
     def __init__(self, text):
         self.text = text
@@ -140,6 +143,7 @@ class Video:
         self.url = url
 
 
+# treat a token and how it is added to the presentation. The function returns current_frame, which is - so far - all that is necessary - besides presetation - to describe the state of the presentation being build 
 def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
     if token.type == "META":
         key, val = token.value
@@ -171,7 +175,6 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
         else:
             raise Exception("No name were given for the subsection")
 
-
     if token.type == "BEGIN_FRAME":
         if current_frame is not None:
             raise Exception(f"the frame {current_frame.title} has not been close, you cannot begin another one")
@@ -196,14 +199,25 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
             raise Exception("You are not in a frame, you thus cannot end a frame")
 
     if token.type == "ITEM":
-        print(token.value)
+        inside_token = token.value
         if current_frame:
-            current_frame = parse_filtering(token.value, presentation, PORTABLE_MEDIAS, current_frame)
-    if token.type == "SUBITEM":
-        #print(token.value)
-        if current_frame:
-            current_frame = parse_filtering(token.value, presentation,PORTABLE_MEDIAS, current_frame)
+            current_frame.contents.append( "<div class='item'>" )
+            current_frame = parse_filtering(inside_token, presentation, PORTABLE_MEDIAS, current_frame)
+            current_frame.contents.append( "</div>" )
 
+    if token.type == "SUBITEM":
+        inside_token = token.value
+        if current_frame:
+            current_frame.contents.append( "<div class='subitem'>" )
+            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame)
+            current_frame.contents.append( "</div>" )
+
+    if token.type == "SUBSUBITEM":
+        inside_token = token.value
+        if current_frame:
+            current_frame.contents.append( "<div class='subsubitem'>" )
+            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame)
+            current_frame.contents.append( "</div>" )
 
 
     if token.type == "TEXT":
@@ -277,13 +291,10 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
     return(current_frame)
 
 
-
-
-
+# creates the presentation from the tokens
 def parse(tokens, PORTABLE_MEDIAS=True):
     presentation = Presentation()
     current_frame = None
-
     for token in tokens:
         current_frame = parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame)
     return(presentation)
@@ -310,9 +321,26 @@ def parse_text_to_html(text):
     return(outText)
 
 
+def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821"):
+    var = f"""
+        --ar_width: {as_w};
+        --ar_height: {as_h};
+        --unit_x: calc( min(90vw, calc( ( var(--ar_width) / var(--ar_height) ) * 90vh) )/100 );
+        --unit_y: calc( min(90vh, calc( ( var(--ar_height) / var(--ar_width) ) * 90vw) )/100 );
+        --bgcolor: {bgcolor};
+        --color1: {color1};
+        --color2: {color2};
+        --color3: {color3};
+        --color4: {color4};
+"""
+
+    css_root = ":root {\n" + var + "}"
+    print(css_root)
+    return css_root
+
 
 # takes the presentation data and generate the output file/files
-def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION=False):
+def write_output_html_file(presentation, css_variable, name="output.html", CSS_FILE_GENERATION=False):
     PRESENTATION_FRAME = f"<div id='0'class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     OUTLINE_HTML_FRAME = ""
@@ -346,101 +374,30 @@ def write_output_html_file(presentation, name="output.html", CSS_FILE_GENERATION
 
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
-    javascript = """
-<script>
-let currentSlide = 0;
-const slideInput = document.getElementById("slideNumber");
-
-// Find all slides with numeric IDs and sort them
-const slides = Array.from(document.querySelectorAll("div[id]"))
-  .filter(div => !isNaN(div.id))
-  .sort((a, b) => Number(a.id) - Number(b.id));
-
-// Function to go to a slide
-const goToSlide = n => {
-  const slide = slides.find(s => Number(s.id) === n);
-  if (!slide) return;
-  slide.scrollIntoView({ behavior: "smooth", block: "center" });
-  currentSlide = n;
-  slideInput.value = currentSlide;
-};
-
-// On page load, go to slide 0
-goToSlide(0);
-
-// Up/Down buttons
-document.getElementById("up").addEventListener("click", () => goToSlide(currentSlide - 1));
-document.getElementById("down").addEventListener("click", () => goToSlide(currentSlide + 1));
-
-// Input events
-slideInput.addEventListener("change", () => goToSlide(Number(slideInput.value)));
-slideInput.addEventListener("keydown", e => {
-  if (e.key === "ArrowUp") goToSlide(currentSlide + 1);
-  if (e.key === "ArrowDown") goToSlide(currentSlide - 1);
-});
-</script>
-            """
-    with open("styles.css", 'r') as style:
+    # loads the differents script/style files inside variables
+    with open("static/script.js", 'r') as script:
+        javascript = script.read()
+    with open("static/styles.css", 'r') as style:
         style_code = style.read()
 
-    css_variable = """
-:root {
-        --ar_width: 16;
-        --ar_height: 9;
-        --unit_x: calc( min(90vw, calc( ( var(--ar_width) / var(--ar_height) ) * 90vh) )/100 );
-        --unit_y: calc( min(90vh, calc( ( var(--ar_height) / var(--ar_width) ) * 90vw) )/100 );
-        --bgcolor: #faf3e1;
-        --color1: #6b3016;
-        --color2: #783a1f;
-        --color3: #ad5e3b;
-        --color4: #362821;
-}
-    """
-    with open("katex/katex_min.css", 'r') as katex_min_css_file:
-        katex_min_css = f"<style>{katex_min_css_file.read()}</style>"
-    with open("katex/katex_min.js", 'r') as katex_min_js_file:
-        katex_min_js = f"<script defer>{katex_min_js_file.read()}</script>"
-    with open("katex/auto_render_min.js", 'r') as katex_render_min_js_file:
-        katex_render_min_js = f"<script defer>{katex_render_min_js_file.read()}</script>"
-        katex_render_min_js += """
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        renderMathInElement(document.body, {
-            delimiters: [
-                { left: "$$", right: "$$", display: true },
-                { left: "$", right: "$",  display: false }
-            ]
-        });
-    });
-</script>
-        """
     try:
+        # loads katex's script/style files inside variables
         with open("katex/katex_min.css", 'r') as katex_min_css_file:
             katex_min_css = f"<style>{katex_min_css_file.read()}</style>"
         with open("katex/katex_min.js", 'r') as katex_min_js_file:
             katex_min_js = f"<script defer>{katex_min_js_file.read()}</script>"
         with open("katex/auto_render_min.js", 'r') as katex_render_min_js_file:
             katex_render_min_js = f"<script defer>{katex_render_min_js_file.read()}</script>"
-            katex_render_min_js += """
-                <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    { left: "$$", right: "$$", display: true },
-                    { left: "$", right: "$",  display: false }
-                ]
-            });
-        });
-    </script>
-            """
+            katex_render_min_js += """<script> document.addEventListener("DOMContentLoaded", function() { renderMathInElement(document.body, { delimiters: [ { left: "$$", right: "$$", display: true }, { left: "$", right: "$",  display: false } ] }); }); </script>"""
     except:
-        raise Exception("KaTeX files not found, you may run `install.sh`")
+        raise Exception("KaTeX files not found, please run `install.sh`")
 
     with open(name, "w+") as outfile:
         if CSS_FILE_GENERATION:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><link rel="stylesheet" href="styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
         else:
             outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
+
 
 
 if __name__ == "__main__" :
@@ -459,9 +416,7 @@ if __name__ == "__main__" :
     file = "main.igtex"
     with open(file, 'r') as igtexFile:
         lines = igtexFile.readlines()
-        #tokens = tokenize(lines)
         tokens = tokenize_lines(lines)
-        #print(tokens)
         presentation = parse(tokens)
-        #write_output_html_file(presentation, CSS_FILE_GENERATION=True)
-        write_output_html_file(presentation)
+        css_variable = root_css()
+        write_output_html_file(presentation, css_variable)
