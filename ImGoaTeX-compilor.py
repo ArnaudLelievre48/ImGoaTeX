@@ -29,58 +29,76 @@ TOKEN_PATTERNS = [
     (r'^\\note\{(.+?)\}', "NOTE"),
 ]
 
-def tokenize(lines):
+
+# tokenization
+def tokenize_expression(expression):
+    for pattern, typ in TOKEN_PATTERNS:
+        matching = re.match(pattern, expression)
+        if matching:
+
+            if typ == "META":
+                key, val = matching.groups()
+                return Token("META", (key.strip(), val.strip()))
+
+            elif typ == "BEGIN_FRAME":
+                args_frame = re.findall(r'\{([^}]*)\}', matching.group(1))
+                if matching.groups():
+                    if len(args_frame) > 2:
+                        raise Exception(f"you gave too much argument to the frame '{args_frame[1]}', it only takes 2")
+                    else:
+                        return Token(typ, tuple(args_frame))
+                else:
+                    return Token(typ, None)
+
+            elif typ == "IMAGE":
+                if matching.groups()[1]:
+                    image_source, args_img = matching.group(1), matching.group(2).split(",")
+                    return Token(typ, tuple([image_source, args_img]) )
+                else:
+                    return Token(typ, matching.group(1))
+
+            elif typ == "VIDEO":
+                if matching.groups()[1]:
+                    video_source, args_vid = matching.group(1), matching.group(2).split(",")
+                    return Token(typ, tuple([video_source, args_vid]))
+                else:
+                    return Token(typ, matching.group(1))
+
+            elif typ == "ITEM":
+                if matching.group(1):
+                    token_inside = tokenize_expression(matching.group(1))
+                    print(token_inside)
+                return ( Token(typ, token_inside) )
+
+            elif typ == "SUBITEM":
+                if matching.group(1):
+                    token_inside = tokenize_expression(matching.group(1))
+                    print(token_inside)
+                return ( Token(typ, token_inside) )
+
+
+            else:
+                if matching.groups():
+                    return Token(typ, matching.group(1))
+                else:
+                    return Token(typ, None)
+    return Token("TEXT", expression)
+
+def tokenize_lines(lines):
     tokens = []
     for line in lines:
         line = line.strip()
         if not line or line[0] == '#':
             continue
-        matched = False
-        for pattern, typ in TOKEN_PATTERNS:
-            m = re.match(pattern, line)
-            if m:
-                if typ == "META":
-                    #print(m.groups())
-                    key, val = m.groups()
-                    tokens.append(Token("META", (key.strip(), val.strip())))
-                elif typ == "BEGIN_FRAME":
-                    args_frame = re.findall(r'\{([^}]*)\}', m.group(1))
-                    #print(args_frame)
-                    if m.groups():
-                        if len(args_frame) > 2:
-                            raise Exception(f"you gave too much argument to the frame '{args_frame[1]}', it only takes 2")
-                        else:
-                            tokens.append(Token(typ, tuple(args_frame)))
-                    else:
-                        tokens.append(Token(typ, None))
-                elif typ == "VIDEO":
-                    if m.groups()[1]:
-                        video_source, args_vid = m.group(1), m.group(2).split(",")
-                        tokens.append( Token(typ, tuple([video_source, args_vid]) ) )
-                    else:
-                        tokens.append( Token(typ, m.group(1)) )
-
-                elif typ == "IMAGE":
-                    if m.groups()[1]:
-                        image_source, args_img = m.group(1), m.group(2).split(",")
-                        #print("args_img = ", args_img)
-                        #print("IMAGE : ", m.groups())
-                        tokens.append( Token(typ, tuple([image_source, args_img]) ) )
-                    else:
-                        tokens.append( Token(typ, m.group(1)) )
-                else:
-                    if m.groups():
-                        tokens.append(Token(typ, m.group(1)))
-                    else:
-                        tokens.append(Token(typ, None))
-                matched = True
-                break
-        if not matched:
-            tokens.append(Token("TEXT", line))
+        else:
+            token = tokenize_expression(line)
+            tokens.append(token)
     return(tokens)
 
 
 
+
+# data structure
 class Presentation:
     def __init__(self, title=None, subtitle=None, author=None, date=None):
         self.title = title
@@ -122,164 +140,152 @@ class Video:
         self.url = url
 
 
+def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
+    if token.type == "META":
+        key, val = token.value
+        if key == "title":
+            presentation.title = val
+        if key == "subtitle":
+            presentation.subtitle = val
+        if key == "author":
+            presentation.author = val
+        if key == "date":
+            try_date = tuple(key.split("-")) # day-month-year
+            try:
+                presentaton.date = datetime.strptime(try_date)
+            except:
+                None # default date with datetime.datetime -> see the presentation class
+
+    if token.type == "SECTION":
+        if token.value: # if the section has a title
+            presentation.sections.append( Section(token.value) ) # create a section with the title : token.value
+        else:
+            raise Exception("No name were given for the section")
+
+    if token.type == "SUBSECTION":
+        if token.value: # if the subsection has a title
+            if presentation.sections != []: # if the presentation has a section
+                presentation.sections[-1].subsections.append( Subsection(token.value) ) # adds the subsection to the last section created
+            else:
+                raise Exception("A subsection has been tried to be created, but no sections were declared beforehand")
+        else:
+            raise Exception("No name were given for the subsection")
+
+
+    if token.type == "BEGIN_FRAME":
+        if current_frame is not None:
+            raise Exception(f"the frame {current_frame.title} has not been close, you cannot begin another one")
+        if presentation.sections != []:
+            if presentation.sections[-1] != []:
+                if len(token.value) == 2:
+                    frame_title, frame_subtitle = token.value
+                    presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle) )
+                else:
+                    frame_title = token.value[0]
+                    presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title) )
+                current_frame = presentation.sections[-1].subsections[-1].frames[-1]
+            else:
+                raise Exception("A frame has been tried to be created, but no subsection were declared beforehand")
+        else:
+            raise Exception("A frame has been tried to be created, but no section nor subsection were declared beforehand")
+
+    if token.type == "END_FRAME":
+        if current_frame is not None:
+            current_frame = None
+        else:
+            raise Exception("You are not in a frame, you thus cannot end a frame")
+
+    if token.type == "ITEM":
+        print(token.value)
+        if current_frame:
+            current_frame = parse_filtering(token.value, presentation, PORTABLE_MEDIAS, current_frame)
+    if token.type == "SUBITEM":
+        #print(token.value)
+        if current_frame:
+            current_frame = parse_filtering(token.value, presentation,PORTABLE_MEDIAS, current_frame)
+
+
+
+    if token.type == "TEXT":
+        if current_frame:
+            current_frame.contents.append( parse_text_to_html( token.value ) )
+            #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
+        else:
+            raise Exception("You are not in a frame, you thus cannot add text to a frame")
+
+    if token.type == "VIDEO":
+        if current_frame:
+            if type(token.value) != type( tuple() ):
+                try:
+                    with open("medias/"+token.value, 'rb') as vid:
+                        if PORTABLE_MEDIAS:
+                            video_html = f"<video style='width: calc(20*var(--unit_x))' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
+                        else:
+                            video_html = f"<video style='width: calc(20*var(--unit_x))' src='medias/{token.value}' controls autoplay loop muted></video>"
+                        current_frame.contents.append( video_html )
+                except:
+                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
+            else:
+                try:
+                    with open("medias/"+token.value[0], 'rb') as vid:
+                        #print("VIDEO OPTIONS : ", token.value[1])
+                        classes = ""
+                        for arg in token.value[1]:
+                            arg = arg.replace(" ", "")
+                            arg = arg.replace("=", "_")
+                            classes = classes + arg + " "
+                        if PORTABLE_MEDIAS:
+                            video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
+                        else:
+                            video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[0]}' controls autoplay loop muted></video>"
+                        current_frame.contents.append( video_html )
+                except:
+                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
+        else:
+            raise Exception("You are not in a frame, you thus cannot add text to a frame")
+
+    if token.type == "IMAGE":
+        if current_frame:
+            if type(token.value) != type( tuple() ):
+                try:
+                    with open("medias/"+token.value, 'rb') as img:
+                        if PORTABLE_MEDIAS:
+                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'</img>"
+                        else:
+                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value}'</img>"
+                    current_frame.contents.append( image_html )
+                except:
+                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
+            else:
+                try:
+                    with open("medias/"+token.value[0], 'rb') as img:
+                        #print("IMAGE OPTIONS : ", token.value[1])
+                        classes = ""
+                        for arg in token.value[1]:
+                            arg = arg.replace(" ", "")
+                            arg = arg.replace("=", "_")
+                            classes = classes + arg + " "
+                        if PORTABLE_MEDIAS:
+                            image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"
+                        else:
+                            image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[1]}'></img>"
+                    current_frame.contents.append( image_html )
+                except:
+                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
+        else:
+            raise Exception("You are not in a frame, you thus cannot add text to a frame")
+    return(current_frame)
+
+
+
+
+
 def parse(tokens, PORTABLE_MEDIAS=True):
     presentation = Presentation()
     current_frame = None
 
     for token in tokens:
-
-        if token.type == "META":
-            key, val =token.value
-            if key == "title":
-                presentation.title = val
-                #print("title :", val)
-            if key == "subtitle":
-                presentation.subtitle = val
-                #print("subtitle :", val)
-            if key == "author":
-                presentation.author = val
-                #print("author :", val)
-            if key == "date":
-                try:
-                    presentaton.date = datetime.strptime(val)
-                    #print("date:", datetime.strptime(val))
-                except:
-                    #print("date:", presentation.date)
-                    continue
-
-        if token.type == "SECTION":
-            if token.value:
-                presentation.sections.append( Section(token.value) )
-                #print()
-                #print("section :", token.value)
-                #print()
-            else:
-                raise Exception("No name were given for the section")
-
-        if token.type == "SUBSECTION":
-            if token.value:
-                if presentation.sections != []:
-                    presentation.sections[-1].subsections.append( Subsection(token.value) )
-                    #print()
-                    #print("section : ", presentation.sections[-1].title, " - subsection :", token.value)
-                    #print()
-                else:
-                    raise Exception("A subsection has been tried to be created, but no sections were declared beforehand")
-            else:
-                raise Exception("No name were given for the subsection")
-
-        if token.type == "BEGIN_FRAME":
-            #print(f"trying to start the frame '{token.value}', current frame is {current_frame}")
-            if current_frame is not None:
-                raise Exception(f"the frame {current_frame.title} has not been close, you cannot begin another one")
-            if presentation.sections != []:
-                if presentation.sections[-1] != []:
-                    if len(token.value) == 2:
-                        frame_title, frame_subtitle = token.value
-                        presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle) )
-                    else:
-                        frame_title = token.value[0]
-                        presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title) )
-                    #print(f"frame '{token.value[0]}' is created")
-                    current_frame = presentation.sections[-1].subsections[-1].frames[-1]
-                    #print(f"current frame is now '{current_frame.title}'")
-                else:
-                    raise Exception("A frame has been tried to be created, but no subsection were declared beforehand")
-            else:
-                raise Exception("A frame has been tried to be created, but no section nor subsection were declared beforehand")
-
-        if token.type == "END_FRAME":
-            if current_frame is not None:
-                #print(f"CLOSING THE FRAME '{current_frame.title}'")
-                current_frame = None
-                #print(current_frame)
-            else:
-                raise Exception("You are not in a frame, you thus cannot end a frame")
-
-        if token.type == "ITEM":
-            #print(token.value)
-            if current_frame:
-                current_frame.contents.append( parse_text_to_html( "- " + token.value ) )
-        if token.type == "SUBITEM":
-            #print(token.value)
-            if current_frame:
-                current_frame.contents.append( parse_text_to_html( "-- " + token.value ) )
-
-
-
-        if token.type == "TEXT":
-            if current_frame:
-                current_frame.contents.append( parse_text_to_html( token.value ) )
-                #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
-            else:
-                raise Exception("You are not in a frame, you thus cannot add text to a frame")
-
-        if token.type == "VIDEO":
-            if current_frame:
-                if type(token.value) != type( tuple() ):
-                    try:
-                        with open("medias/"+token.value, 'rb') as vid:
-                            if PORTABLE_MEDIAS:
-                                encoded_video = base64.b64encode(vid.read()).decode("utf-8")
-                                video_html = f"<video style='width: calc(20*var(--unit_x))' src='data:video/mp4;base64,{encoded_video}' controls autoplay loop muted></video>"
-                            else:
-                                video_html = f"<video style='width: calc(20*var(--unit_x))' src='medias/{token.value}' controls autoplay loop muted></video>"
-                            current_frame.contents.append( video_html )
-                    except:
-                        current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
-                else:
-                    try:
-                        with open("medias/"+token.value[0], 'rb') as vid:
-                            #print("VIDEO OPTIONS : ", token.value[1])
-                            classes = ""
-                            for arg in token.value[1]:
-                                arg = arg.replace(" ", "")
-                                arg = arg.replace("=", "_")
-                                classes = classes + arg + " "
-                            if PORTABLE_MEDIAS:
-                                encoded_video = base64.b64encode(vid.read()).decode("utf-8")
-                                video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='data:video/mp4;base64,{encoded_video}' controls autoplay loop muted></video>"
-                            else:
-                                video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[0]}' controls autoplay loop muted></video>"
-                            current_frame.contents.append( video_html )
-                    except:
-                        current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
-            else:
-                raise Exception("You are not in a frame, you thus cannot add text to a frame")
-
-        if token.type == "IMAGE":
-            if current_frame:
-                if type(token.value) != type( tuple() ):
-                    try:
-                        with open("medias/"+token.value, 'rb') as img:
-                            if PORTABLE_MEDIAS:
-                                encoded_image = base64.b64encode(img.read()).decode("utf-8")
-                                image_html = f"<img style='width: calc(20*var(--unit_x))' src='data:image/png;base64,{encoded_image}'</img>"
-                            else:
-                                image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value}'</img>"
-                        current_frame.contents.append( image_html )
-                    except:
-                        current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
-                else:
-                    try:
-                        with open("medias/"+token.value[0], 'rb') as img:
-                            #print("IMAGE OPTIONS : ", token.value[1])
-                            classes = ""
-                            for arg in token.value[1]:
-                                arg = arg.replace(" ", "")
-                                arg = arg.replace("=", "_")
-                                classes = classes + arg + " "
-                            if PORTABLE_MEDIAS:
-                                encoded_image = base64.b64encode(img.read()).decode("utf-8")
-                                image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='data:image/png;base64,{encoded_image}'></img>"
-                            else:
-                                image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[1]}'></img>"
-                        current_frame.contents.append( image_html )
-                    except:
-                        current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
-            else:
-                raise Exception("You are not in a frame, you thus cannot add text to a frame")
-
+        current_frame = parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame)
     return(presentation)
 
 
@@ -453,7 +459,8 @@ if __name__ == "__main__" :
     file = "main.igtex"
     with open(file, 'r') as igtexFile:
         lines = igtexFile.readlines()
-        tokens = tokenize(lines)
+        #tokens = tokenize(lines)
+        tokens = tokenize_lines(lines)
         #print(tokens)
         presentation = parse(tokens)
         #write_output_html_file(presentation, CSS_FILE_GENERATION=True)
