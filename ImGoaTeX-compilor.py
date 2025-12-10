@@ -335,7 +335,6 @@ def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a
 """
 
     css_root = ":root {\n" + var + "}"
-    print(css_root)
     return css_root
 
 

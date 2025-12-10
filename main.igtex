@@ -9,6 +9,7 @@
 
 \begin{frame}{Welcome}
 Hello, welcome to coding in **ImGoaTeX**!
+\image{ImGoaTeX-squared.png}[position=right]
 \end{frame}
 
 \section{tests of features}
@@ -20,7 +21,7 @@ Hello, welcome to coding in **ImGoaTeX**!
 
 
 \begin{frame}{images}{with no arguments}
-\image{mygif.gif}
+\image{ImGoaTeX.png}
 \end{frame}
 
 \begin{frame}{images}{with a size=2, right-top, with a subtitle}
