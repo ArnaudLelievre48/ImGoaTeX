@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import argparse
 from pathlib import Path
 import base64
+import os
 
 
 Token = namedtuple("Token", ["type", "value"])
@@ -144,7 +145,7 @@ class Video:
 
 
 # treat a token and how it is added to the presentation. The function returns current_frame, which is - so far - all that is necessary - besides presetation - to describe the state of the presentation being build 
-def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
+def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder):
     if token.type == "META":
         key, val = token.value
         if key == "title":
@@ -202,21 +203,21 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
         inside_token = token.value
         if current_frame:
             current_frame.contents.append( "<div class='item'>" )
-            current_frame = parse_filtering(inside_token, presentation, PORTABLE_MEDIAS, current_frame)
+            current_frame = parse_filtering(inside_token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             current_frame.contents.append( "</div>" )
 
     if token.type == "SUBITEM":
         inside_token = token.value
         if current_frame:
             current_frame.contents.append( "<div class='subitem'>" )
-            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame)
+            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame, folder)
             current_frame.contents.append( "</div>" )
 
     if token.type == "SUBSUBITEM":
         inside_token = token.value
         if current_frame:
             current_frame.contents.append( "<div class='subsubitem'>" )
-            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame)
+            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame, folder)
             current_frame.contents.append( "</div>" )
 
 
@@ -231,17 +232,17 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
         if current_frame:
             if type(token.value) != type( tuple() ):
                 try:
-                    with open("medias/"+token.value, 'rb') as vid:
+                    with open(folder+"medias/"+token.value, 'rb') as vid:
                         if PORTABLE_MEDIAS:
                             video_html = f"<video style='width: calc(20*var(--unit_x))' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
                         else:
-                            video_html = f"<video style='width: calc(20*var(--unit_x))' src='medias/{token.value}' controls autoplay loop muted></video>"
+                            video_html = f"<video style='width: calc(20*var(--unit_x))' src='{folder}medias/{token.value}' controls autoplay loop muted></video>"
                         current_frame.contents.append( video_html )
                 except:
-                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value} '</p>" )
+                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' {folder}medias/{token.value} '</p>" )
             else:
                 try:
-                    with open("medias/"+token.value[0], 'rb') as vid:
+                    with open(folder+"medias/"+token.value[0], 'rb') as vid:
                         #print("VIDEO OPTIONS : ", token.value[1])
                         classes = ""
                         for arg in token.value[1]:
@@ -251,10 +252,10 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
                         if PORTABLE_MEDIAS:
                             video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
                         else:
-                            video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[0]}' controls autoplay loop muted></video>"
+                            video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
                         current_frame.contents.append( video_html )
                 except:
-                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
+                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
         else:
             raise Exception("You are not in a frame, you thus cannot add text to a frame")
 
@@ -262,17 +263,17 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
         if current_frame:
             if type(token.value) != type( tuple() ):
                 try:
-                    with open("medias/"+token.value, 'rb') as img:
+                    with open(folder+"medias/"+token.value, 'rb') as img:
                         if PORTABLE_MEDIAS:
                             image_html = f"<img style='width: calc(20*var(--unit_x))' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'</img>"
                         else:
-                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='medias/{token.value}'</img>"
+                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='{folder}medias/{token.value}'</img>"
                     current_frame.contents.append( image_html )
                 except:
-                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value} '</p>" )
+                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : '{folder}medias/{token.value} '</p>" )
             else:
                 try:
-                    with open("medias/"+token.value[0], 'rb') as img:
+                    with open(folder+"medias/"+token.value[0], 'rb') as img:
                         #print("IMAGE OPTIONS : ", token.value[1])
                         classes = ""
                         for arg in token.value[1]:
@@ -282,21 +283,21 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame):
                         if PORTABLE_MEDIAS:
                             image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"
                         else:
-                            image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='medias/{token.value[1]}'></img>"
+                            image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
                     current_frame.contents.append( image_html )
                 except:
-                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : ' medias/{token.value[0]} '</p>" )
+                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
         else:
             raise Exception("You are not in a frame, you thus cannot add text to a frame")
     return(current_frame)
 
 
 # creates the presentation from the tokens
-def parse(tokens, PORTABLE_MEDIAS=True):
+def parse(tokens, folder, PORTABLE_MEDIAS=True):
     presentation = Presentation()
     current_frame = None
     for token in tokens:
-        current_frame = parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame)
+        current_frame = parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame ,folder)
     return(presentation)
 
 
@@ -339,7 +340,7 @@ def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a
 
 
 # takes the presentation data and generate the output file/files
-def write_output_html_file(presentation, css_variable, name="output.html", CSS_FILE_GENERATION=False):
+def write_output_html_file(presentation, css_variable, folder, name="output.html", CSS_FILE_GENERATION=False):
     PRESENTATION_FRAME = f"<div id='0'class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     OUTLINE_HTML_FRAME = ""
@@ -391,7 +392,7 @@ def write_output_html_file(presentation, css_variable, name="output.html", CSS_F
     except:
         raise Exception("KaTeX files not found, please run `install.sh`")
 
-    with open(name, "w+") as outfile:
+    with open(folder+name, "w+") as outfile:
         if CSS_FILE_GENERATION:
             outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
         else:
@@ -411,11 +412,13 @@ if __name__ == "__main__" :
             exit(1)
         else:
             file = args.filename
+            folder = os.path.dirname(file)
+            if folder:
+                folder += "/"
 
-    file = "main.igtex"
     with open(file, 'r') as igtexFile:
         lines = igtexFile.readlines()
         tokens = tokenize_lines(lines)
-        presentation = parse(tokens)
+        presentation = parse(tokens, folder)
         css_variable = root_css()
-        write_output_html_file(presentation, css_variable)
+        write_output_html_file(presentation, css_variable, folder)

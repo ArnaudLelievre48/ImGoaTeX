@@ -1,5 +1,5 @@
 # ImGoaTeX
-ImGoaTeX : Improved Graphics and Accessibility Over TeX - A programming language inspired by LaTex's Beamer library that lets you create beautifully structured presentations that compile directly to HTML, giving you access to features traditional PDFs lacks
+ImGoaTeX : Improved Graphics and Objectivly more Accessible than TeX - A programming language inspired by LaTex's Beamer library that lets you create beautifully structured presentations that compile directly to HTML, giving you access to features traditional PDFs lacks
 
 ## First usage
 
