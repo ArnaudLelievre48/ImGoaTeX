@@ -7,6 +7,7 @@ from pathlib import Path
 import base64
 import os
 
+ABS_COMPILOR_PATH = os.path.dirname(os.path.abspath(__file__))+"/"
 
 Token = namedtuple("Token", ["type", "value"])
 
@@ -375,18 +376,18 @@ def write_output_html_file(presentation, css_variable, folder, name="output.html
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 
     # loads the differents script/style files inside variables
-    with open("static/script.js", 'r') as script:
+    with open(ABS_COMPILOR_PATH + "static/script.js", 'r') as script:
         javascript = script.read()
-    with open("static/styles.css", 'r') as style:
+    with open(ABS_COMPILOR_PATH + "static/styles.css", 'r') as style:
         style_code = style.read()
 
     try:
         # loads katex's script/style files inside variables
-        with open("katex/katex_min.css", 'r') as katex_min_css_file:
+        with open(ABS_COMPILOR_PATH + "katex/katex_min.css", 'r') as katex_min_css_file:
             katex_min_css = f"<style>{katex_min_css_file.read()}</style>"
-        with open("katex/katex_min.js", 'r') as katex_min_js_file:
+        with open(ABS_COMPILOR_PATH + "katex/katex_min.js", 'r') as katex_min_js_file:
             katex_min_js = f"<script defer>{katex_min_js_file.read()}</script>"
-        with open("katex/auto_render_min.js", 'r') as katex_render_min_js_file:
+        with open(ABS_COMPILOR_PATH + "katex/auto_render_min.js", 'r') as katex_render_min_js_file:
             katex_render_min_js = f"<script defer>{katex_render_min_js_file.read()}</script>"
             katex_render_min_js += """<script> document.addEventListener("DOMContentLoaded", function() { renderMathInElement(document.body, { delimiters: [ { left: "$$", right: "$$", display: true }, { left: "$", right: "$",  display: false } ] }); }); </script>"""
     except:
@@ -411,7 +412,7 @@ if __name__ == "__main__" :
             raise Exception(f"Error: '{args.filename}' does not exist or is not a file.")
             exit(1)
         else:
-            file = args.filename
+            file = os.path.abspath(args.filename)
             folder = os.path.dirname(file)
             if folder:
                 folder += "/"
