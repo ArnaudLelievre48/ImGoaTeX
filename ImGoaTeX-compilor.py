@@ -5,11 +5,11 @@ from dataclasses import dataclass, field
 import argparse
 from pathlib import Path
 import base64
-import os
+import os, sys
 
 ABS_COMPILOR_PATH = os.path.dirname(os.path.abspath(__file__))+"/"
 
-Token = namedtuple("Token", ["type", "value"])
+Token = namedtuple("Token", ["type", "value", "line"])
 
 # regex patterns
 TOKEN_PATTERNS = [
@@ -28,71 +28,74 @@ TOKEN_PATTERNS = [
 
 
 # tokenization
-def tokenize_expression(expression):
+def tokenize_expression(expression, line_number):
     for pattern, typ in TOKEN_PATTERNS:
         matching = re.match(pattern, expression)
         if matching: # if a certain pattern has been recognized, then it's not plain text -> we treat it
 
             if typ == "META":
                 key, val = matching.groups()
-                return Token("META", (key.strip(), val.strip()))
+                return Token("META", (key.strip(), val.strip()), line_number)
 
             elif typ == "BEGIN_FRAME":
                 args_frame = re.findall(r'\{([^}]*)\}', matching.group(1))
                 if matching.groups():
                     if len(args_frame) > 2:
-                        raise Exception(f"you gave too much argument to the frame '{args_frame[1]}', it only takes 2")
+                        print(f"ERROR AT LINE {token.line} : you gave too much argument to the frame '{args_frame[1]}', it only takes 2, a title and a subtitle")
+                        sys.exit(1)
                     else:
-                        return Token(typ, tuple(args_frame))
+                        return Token(typ, tuple(args_frame), line_number)
                 else:
-                    return Token(typ, None)
+                    return Token(typ, None, line_number)
 
             elif typ == "IMAGE":
                 if matching.groups()[1]:
                     image_source, args_img = matching.group(1), matching.group(2).split(",")
-                    return Token(typ, tuple([image_source, args_img]) )
+                    return Token(typ, tuple([image_source, args_img]), line_number )
                 else:
-                    return Token(typ, matching.group(1))
+                    return Token(typ, matching.group(1), line_number)
 
             elif typ == "VIDEO":
                 if matching.groups()[1]:
                     video_source, args_vid = matching.group(1), matching.group(2).split(",")
-                    return Token(typ, tuple([video_source, args_vid]))
+                    return Token(typ, tuple([video_source, args_vid]), line_number)
                 else:
-                    return Token(typ, matching.group(1))
+                    return Token(typ, matching.group(1), line_number)
 
             elif typ == "ITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression("● " + matching.group(1))
-                return ( Token(typ, token_inside) )
+                    token_inside = tokenize_expression("● " + matching.group(1), line_number)
+                return ( Token(typ, token_inside, line_number) )
 
             elif typ == "SUBITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression("○ " + matching.group(1))
-                return ( Token(typ, token_inside) )
+                    token_inside = tokenize_expression("○ " + matching.group(1), line_number)
+                return ( Token(typ, token_inside, line_number) )
 
             elif typ == "SUBSUBITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression("◌ " + matching.group(1))
-                return ( Token(typ, token_inside) )
+                    token_inside = tokenize_expression("◌ " + matching.group(1), line_number)
+                return ( Token(typ, token_inside, line_number) )
 
 
 
             else:
                 if matching.groups():
-                    return Token(typ, matching.group(1))
+                    return Token(typ, matching.group(1), line_number)
                 else:
-                    return Token(typ, None)
-    return Token("TEXT", expression)
+                    return Token(typ, None, line_number)
+    return Token("TEXT", expression, line_number)
 
 def tokenize_lines(lines):
     tokens = []
+    line_number = 0
     for line in lines:
+        line_number += 1
         line = line.strip()
         if not line or line[0] == '#':
             continue
         else:
-            token = tokenize_expression(line)
+            token = tokenize_expression(line, line_number)
             tokens.append(token)
     return(tokens)
 
@@ -166,22 +169,26 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
         if token.value: # if the section has a title
             presentation.sections.append( Section(token.value) ) # create a section with the title : token.value
         else:
-            raise Exception("No name were given for the section")
+            print(f"ERROR AT LINE {token.line} : No name were given for the section")
+            sys.exit(1)
 
     if token.type == "SUBSECTION":
         if token.value: # if the subsection has a title
             if presentation.sections != []: # if the presentation has a section
                 presentation.sections[-1].subsections.append( Subsection(token.value) ) # adds the subsection to the last section created
             else:
-                raise Exception("A subsection has been tried to be created, but no sections were declared beforehand")
+                print(f"ERROR AT LINE {token.line} : the subsection '{token.value}' has been tried to be created, but no sections were declared beforehand")
+                sys.exit(1)
         else:
-            raise Exception("No name were given for the subsection")
+            print(f"ERROR AT LINE {token.line} : No name were given for the subsection")
+            sys.exit(1)
 
     if token.type == "BEGIN_FRAME":
         if current_frame is not None:
-            raise Exception(f"the frame {current_frame.title} has not been close, you cannot begin another one")
+            print(f"ERROR AT LINE {token.line} : the frame '{current_frame.title}' has not been close, you cannot begin another one")
+            sys.exit(1)
         if presentation.sections != []:
-            if presentation.sections[-1] != []:
+            if presentation.sections[-1].subsections != []:
                 if len(token.value) == 2:
                     frame_title, frame_subtitle = token.value
                     presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle) )
@@ -190,15 +197,18 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                     presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title) )
                 current_frame = presentation.sections[-1].subsections[-1].frames[-1]
             else:
-                raise Exception("A frame has been tried to be created, but no subsection were declared beforehand")
+                print(f"ERROR AT LINE {token.line} : The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
+                sys.exit(1)
         else:
-            raise Exception("A frame has been tried to be created, but no section nor subsection were declared beforehand")
+            print(f"ERROR AT LINE {token.line} : The frame '{token.value[0]}' could not be created : no sections were declared beforehand")
+            sys.exit(1)
 
     if token.type == "END_FRAME":
         if current_frame is not None:
             current_frame = None
         else:
-            raise Exception("You are not in a frame, you thus cannot end a frame")
+            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot end a frame")
+            sys.exit(1)
 
     if token.type == "ITEM":
         inside_token = token.value
@@ -227,7 +237,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             current_frame.contents.append( parse_text_to_html( token.value ) )
             #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
         else:
-            raise Exception("You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot add text to a frame")
+            sys.exit(1)
 
     if token.type == "VIDEO":
         if current_frame:
@@ -258,7 +269,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                 except:
                     current_frame.contents.append( f"<p> empty video pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
         else:
-            raise Exception("You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot add text to a frame")
+            sys.exit(1)
 
     if token.type == "IMAGE":
         if current_frame:
@@ -289,7 +301,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                 except:
                     current_frame.contents.append( f"<p> empty image pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
         else:
-            raise Exception("You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot add text to a frame")
+            sys.exit(1)
     return(current_frame)
 
 
@@ -391,7 +404,8 @@ def write_output_html_file(presentation, css_variable, folder, name="output.html
             katex_render_min_js = f"<script defer>{katex_render_min_js_file.read()}</script>"
             katex_render_min_js += """<script> document.addEventListener("DOMContentLoaded", function() { renderMathInElement(document.body, { delimiters: [ { left: "$$", right: "$$", display: true }, { left: "$", right: "$",  display: false } ] }); }); </script>"""
     except:
-        raise Exception("KaTeX files not found, please run `install.sh`")
+        print("KaTeX files not found, please run `install.sh`")
+        sys.exit(1)
 
     with open(folder+name, "w+") as outfile:
         if CSS_FILE_GENERATION:
@@ -409,7 +423,8 @@ if __name__ == "__main__" :
     if args.filename:
         file_path = Path(args.filename)
         if not file_path.is_file():
-            raise Exception(f"Error: '{args.filename}' does not exist or is not a file.")
+            print(f"Error: '{args.filename}' does not exist or is not a file.")
+            sys.exit(1)
             exit(1)
         else:
             file = os.path.abspath(args.filename)
