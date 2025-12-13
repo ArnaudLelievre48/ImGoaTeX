@@ -23,6 +23,7 @@ TOKEN_PATTERNS = [
     (r'^\\item\{(.+?)\}', "ITEM"),
     (r'^\\subitem\{(.+?)\}', "SUBITEM"),
     (r'^\\subsubitem\{(.+?)\}', "SUBSUBITEM"),
+    (r'^#\.*', "COMMENT"),
     (r'^\\note\{(.+?)\}', "NOTE"),
 ]
 
@@ -32,59 +33,63 @@ def tokenize_expression(expression, line_number):
     for pattern, typ in TOKEN_PATTERNS:
         matching = re.match(pattern, expression)
         if matching: # if a certain pattern has been recognized, then it's not plain text -> we treat it
+            rest_expression = expression[matching.end():]
+
+            if typ == "COMMENT":
+                return None, ""
 
             if typ == "META":
                 key, val = matching.groups()
-                return Token("META", (key.strip(), val.strip()), line_number)
+                return Token("META", (key.strip(), val.strip()), line_number), rest_expression
 
             elif typ == "BEGIN_FRAME":
                 args_frame = re.findall(r'\{([^}]*)\}', matching.group(1))
                 if matching.groups():
                     if len(args_frame) > 2:
-                        print(f"ERROR AT LINE {token.line} : you gave too much argument to the frame '{args_frame[1]}', it only takes 2, a title and a subtitle")
+                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you gave too much argument to the frame '{args_frame[1]}', it only takes 2, a title and a subtitle")
                         sys.exit(1)
                     else:
-                        return Token(typ, tuple(args_frame), line_number)
+                        return Token(typ, tuple(args_frame), line_number), rest_expression
                 else:
-                    return Token(typ, None, line_number)
+                    return Token(typ, None, line_number), rest_expression
 
             elif typ == "IMAGE":
                 if matching.groups()[1]:
                     image_source, args_img = matching.group(1), matching.group(2).split(",")
-                    return Token(typ, tuple([image_source, args_img]), line_number )
+                    return Token(typ, tuple([image_source, args_img]), line_number ), rest_expression
                 else:
-                    return Token(typ, matching.group(1), line_number)
+                    return Token(typ, matching.group(1), line_number), rest_expression
 
             elif typ == "VIDEO":
                 if matching.groups()[1]:
                     video_source, args_vid = matching.group(1), matching.group(2).split(",")
-                    return Token(typ, tuple([video_source, args_vid]), line_number)
+                    return Token(typ, tuple([video_source, args_vid]), line_number), rest_expression
                 else:
-                    return Token(typ, matching.group(1), line_number)
+                    return Token(typ, matching.group(1), line_number), rest_expression
 
             elif typ == "ITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression("● " + matching.group(1), line_number)
-                return ( Token(typ, token_inside, line_number) )
+                    token_inside, _ = tokenize_expression("● " + matching.group(1), line_number)
+                return ( Token(typ, token_inside, line_number) ), rest_expression
 
             elif typ == "SUBITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression("○ " + matching.group(1), line_number)
-                return ( Token(typ, token_inside, line_number) )
+                    token_inside, _ = tokenize_expression("○ " + matching.group(1), line_number)
+                return ( Token(typ, token_inside, line_number) ), rest_expression
 
             elif typ == "SUBSUBITEM":
                 if matching.group(1):
-                    token_inside = tokenize_expression("◌ " + matching.group(1), line_number)
-                return ( Token(typ, token_inside, line_number) )
+                    token_inside, _ = tokenize_expression("◌ " + matching.group(1), line_number)
+                return ( Token(typ, token_inside, line_number) ), rest_expression
 
 
 
             else:
                 if matching.groups():
-                    return Token(typ, matching.group(1), line_number)
+                    return Token(typ, matching.group(1), line_number), rest_expression
                 else:
-                    return Token(typ, None, line_number)
-    return Token("TEXT", expression, line_number)
+                    return Token(typ, None, line_number), rest_expression
+    return Token("TEXT", expression.split('#')[0], line_number), ""
 
 def tokenize_lines(lines):
     tokens = []
@@ -92,11 +97,17 @@ def tokenize_lines(lines):
     for line in lines:
         line_number += 1
         line = line.strip()
-        if not line or line[0] == '#':
+        if not line:
             continue
         else:
-            token = tokenize_expression(line, line_number)
-            tokens.append(token)
+            token, rest_expression = tokenize_expression(line, line_number)
+            if token != None:
+                tokens.append(token)
+            else:
+                continue
+            while rest_expression != "":
+                token, rest_expression = tokenize_expression(rest_expression.lstrip(" "), line_number)
+                tokens.append(token)
     return(tokens)
 
 
@@ -169,7 +180,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
         if token.value: # if the section has a title
             presentation.sections.append( Section(token.value) ) # create a section with the title : token.value
         else:
-            print(f"ERROR AT LINE {token.line} : No name were given for the section")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n No name were given for the section")
             sys.exit(1)
 
     if token.type == "SUBSECTION":
@@ -177,15 +188,15 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             if presentation.sections != []: # if the presentation has a section
                 presentation.sections[-1].subsections.append( Subsection(token.value) ) # adds the subsection to the last section created
             else:
-                print(f"ERROR AT LINE {token.line} : the subsection '{token.value}' has been tried to be created, but no sections were declared beforehand")
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} --  {lines[token.line]} \n\n the subsection '{token.value}' could not be created : no sections were declared beforehand")
                 sys.exit(1)
         else:
-            print(f"ERROR AT LINE {token.line} : No name were given for the subsection")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n No name were given for the subsection")
             sys.exit(1)
 
     if token.type == "BEGIN_FRAME":
         if current_frame is not None:
-            print(f"ERROR AT LINE {token.line} : the frame '{current_frame.title}' has not been close, you cannot begin another one")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n the frame '{current_frame.title}' could not be created, the frame '{presentation.sections[-1].subsections[-1].frames[-1].title}' has not been ended.")
             sys.exit(1)
         if presentation.sections != []:
             if presentation.sections[-1].subsections != []:
@@ -197,17 +208,17 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                     presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title) )
                 current_frame = presentation.sections[-1].subsections[-1].frames[-1]
             else:
-                print(f"ERROR AT LINE {token.line} : The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
                 sys.exit(1)
         else:
-            print(f"ERROR AT LINE {token.line} : The frame '{token.value[0]}' could not be created : no sections were declared beforehand")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no sections were declared beforehand")
             sys.exit(1)
 
     if token.type == "END_FRAME":
         if current_frame is not None:
             current_frame = None
         else:
-            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot end a frame")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot end a frame")
             sys.exit(1)
 
     if token.type == "ITEM":
@@ -237,7 +248,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             current_frame.contents.append( parse_text_to_html( token.value ) )
             #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
         else:
-            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
             sys.exit(1)
 
     if token.type == "VIDEO":
@@ -269,7 +280,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                 except:
                     current_frame.contents.append( f"<p> empty video pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
         else:
-            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
             sys.exit(1)
 
     if token.type == "IMAGE":
@@ -301,7 +312,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                 except:
                     current_frame.contents.append( f"<p> empty image pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
         else:
-            print(f"ERROR AT LINE {token.line} : You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
             sys.exit(1)
     return(current_frame)
 
@@ -425,7 +436,6 @@ if __name__ == "__main__" :
         if not file_path.is_file():
             print(f"Error: '{args.filename}' does not exist or is not a file.")
             sys.exit(1)
-            exit(1)
         else:
             file = os.path.abspath(args.filename)
             folder = os.path.dirname(file)

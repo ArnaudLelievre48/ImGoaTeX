@@ -21,7 +21,7 @@ Hello, welcome to coding in **ImGoaTeX**!
 
 
 \begin{frame}{images}{with no arguments}
-\image{ImGoaTeX.png}
+\image{ImGoaTeX.png} ceci est un test # commentaire
 \end{frame}
 
 \begin{frame}{images}{with a size=2, right-top, with a subtitle}
@@ -33,8 +33,7 @@ Hello, welcome to coding in **ImGoaTeX**!
 \end{frame}
 
 \begin{frame}{imageswith a size=2, right-bottom}
-\image{mygif.gif}[position=right-bottom, size=2]
-\end{frame}
+\image{mygif.gif}[position=right-bottom, size=2] \end{frame}
 
 
 
@@ -56,7 +55,7 @@ here is some text that is written after the image
 \subsubitem{sous-sous-tiret}
 \end{frame}
 
-\subsection{tests du texte}
+\subsection{tests des equation}
 \begin{frame}{tests equations}
 Intégrale gaussienne : $\int_{-\infty}^{+\infty} e^{-x^2} dx = \sqrt{\pi}$
 Intégrale gaussienne double signe dollard : $$\int_{-\infty}^{+\infty} e^{-x^2} dx = \sqrt{\pi}$$
