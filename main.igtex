@@ -10,6 +10,7 @@
 \begin{frame}{Welcome}
 Hello, welcome to coding in **ImGoaTeX**!
 \image{ImGoaTeX-squared.png}[position=right]
+\pause Here I used a pause command to make a Beamer-like animation that simply copies a frame \\ Have fun using **ImGoaTex** !
 \end{frame}
 
 \section{tests of features}

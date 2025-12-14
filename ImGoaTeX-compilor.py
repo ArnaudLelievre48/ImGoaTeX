@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import argparse
 from pathlib import Path
 import base64
-import os, sys
+import os, sys, copy
 
 ABS_COMPILOR_PATH = os.path.dirname(os.path.abspath(__file__))+"/"
 
@@ -24,6 +24,7 @@ TOKEN_PATTERNS = [
     (r'^\\subitem\{(.+?)\}', "SUBITEM"),
     (r'^\\subsubitem\{(.+?)\}', "SUBSUBITEM"),
     (r'^#\.*', "COMMENT"),
+    (r'^\\pause', "PAUSE"),
     (r'^\\note\{(.+?)\}', "NOTE"),
 ]
 
@@ -52,6 +53,10 @@ def tokenize_expression(expression, line_number):
                         return Token(typ, tuple(args_frame), line_number), rest_expression
                 else:
                     return Token(typ, None, line_number), rest_expression
+
+            if typ == "PAUSE":
+                return Token(typ, None, line_number), rest_expression
+
 
             elif typ == "IMAGE":
                 if matching.groups()[1]:
@@ -133,10 +138,17 @@ class Subsection:
         self.frames = []
 
 class Frame:
-    def __init__(self, title=None, subtitle=None):
+    def __init__(self, title=None, subtitle=None, contents=None):
         self.title = title
         self.subtitle = subtitle
-        self.contents = []
+        if contents == None:
+            self.contents = []
+        else:
+            self.contents = copy.deepcopy(contents)
+
+class Pause:
+    def __init__(self, frame=None):
+        self.frame = frame
 
 class Item:
     def __init__(self, contents):
@@ -220,6 +232,13 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot end a frame")
             sys.exit(1)
+
+    if token.type == "PAUSE":
+        if current_frame is not None:
+            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents) )
+            presentation.sections[-1].subsections[-1].frames.append( current_frame  )
+        else:
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")
 
     if token.type == "ITEM":
         inside_token = token.value
