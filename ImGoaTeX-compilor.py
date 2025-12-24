@@ -12,11 +12,12 @@ ABS_COMPILOR_PATH = os.path.dirname(os.path.abspath(__file__))+"/"
 Token = namedtuple("Token", ["type", "value", "line"])
 
 # regex patterns
+#(r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
 TOKEN_PATTERNS = [
     (r'^%(.+?):\s*(.+)$', "META"),
     (r'^\\section\{(.+?)\}', "SECTION"),
     (r'^\\subsection\{(.+?)\}', "SUBSECTION"),
-    (r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
+    (r'\\begin\{frame\}\{([^}]*)\}(?:\{([^}]*)\})?(?:\[([^\]]*)\])?', "BEGIN_FRAME"),
     (r'^\\end\{frame\}', "END_FRAME"),
     (r'^\\video\{([^}]*)\}(?:\[([^\]]*)\])?', "VIDEO"),
     (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
@@ -39,22 +40,25 @@ def tokenize_expression(expression, line_number):
             if typ == "COMMENT":
                 return None, ""
 
-            if typ == "META":
+            elif typ == "META":
                 key, val = matching.groups()
                 return Token("META", (key.strip(), val.strip()), line_number), rest_expression
 
             elif typ == "BEGIN_FRAME":
-                args_frame = re.findall(r'\{([^}]*)\}', matching.group(1))
+                frame_title, frame_subtitle, frame_options = matching.groups()
+                if frame_options is not None:
+                    frame_options = frame_options.split(",")
                 if matching.groups():
-                    if len(args_frame) > 2:
-                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you gave too much argument to the frame '{args_frame[1]}', it only takes 2, a title and a subtitle")
+                    if len(matching.groups()) > 3:
+                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you gave too much argument to the frame '{frame_title}', it only takes 2, a title and a subtitle plus optional options")
                         sys.exit(1)
                     else:
-                        return Token(typ, tuple(args_frame), line_number), rest_expression
+                        return Token(typ, (frame_title, frame_subtitle, frame_options), line_number), rest_expression
                 else:
-                    return Token(typ, None, line_number), rest_expression
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you did not give any argument to the frame '{frame_title}', it takes up to 2 arguments, a title, optional subtitle plus optional options")
+                    sys.exit(1)
 
-            if typ == "PAUSE":
+            elif typ == "PAUSE":
                 return Token(typ, None, line_number), rest_expression
 
 
@@ -63,14 +67,14 @@ def tokenize_expression(expression, line_number):
                     image_source, args_img = matching.group(1), matching.group(2).split(",")
                     return Token(typ, tuple([image_source, args_img]), line_number ), rest_expression
                 else:
-                    return Token(typ, matching.group(1), line_number), rest_expression
+                    return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
 
             elif typ == "VIDEO":
                 if matching.groups()[1]:
                     video_source, args_vid = matching.group(1), matching.group(2).split(",")
                     return Token(typ, tuple([video_source, args_vid]), line_number), rest_expression
                 else:
-                    return Token(typ, matching.group(1), line_number), rest_expression
+                    return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
 
             elif typ == "ITEM":
                 if matching.group(1):
@@ -138,10 +142,14 @@ class Subsection:
         self.frames = []
 
 class Frame:
-    def __init__(self, title=None, subtitle=None, contents=None):
+    def __init__(self, title=None, subtitle=None, contents=None, options=None):
         self.title = title
         self.subtitle = subtitle
-        if contents == None:
+        if options is None:
+            self.options = []
+        else:
+            self.options = copy.deepcopy(options)
+        if contents is None:
             self.contents = []
         else:
             self.contents = copy.deepcopy(contents)
@@ -212,12 +220,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             sys.exit(1)
         if presentation.sections != []:
             if presentation.sections[-1].subsections != []:
-                if len(token.value) == 2:
-                    frame_title, frame_subtitle = token.value
-                    presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle) )
-                else:
-                    frame_title = token.value[0]
-                    presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title) )
+                frame_title, frame_subtitle, frame_options = token.value
+                presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle, None, frame_options) )
                 current_frame = presentation.sections[-1].subsections[-1].frames[-1]
             else:
                 print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
@@ -235,7 +239,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
     if token.type == "PAUSE":
         if current_frame is not None:
-            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents) )
+            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents, current_frame.options) )
             presentation.sections[-1].subsections[-1].frames.append( current_frame  )
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")
@@ -272,64 +276,110 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
     if token.type == "VIDEO":
         if current_frame:
-            if type(token.value) != type( tuple() ):
-                try:
-                    with open(folder+"medias/"+token.value, 'rb') as vid:
-                        if PORTABLE_MEDIAS:
-                            video_html = f"<video style='width: calc(20*var(--unit_x))' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
-                        else:
-                            video_html = f"<video style='width: calc(20*var(--unit_x))' src='{folder}medias/{token.value}' controls autoplay loop muted></video>"
-                        current_frame.contents.append( video_html )
-                except:
-                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : ' {folder}medias/{token.value} '</p>" )
-            else:
-                try:
-                    with open(folder+"medias/"+token.value[0], 'rb') as vid:
-                        #print("VIDEO OPTIONS : ", token.value[1])
-                        classes = ""
+            imgclass = "mediaoverlay"
+            inline = False
+            if current_frame.subtitle is not None:
+                imgclass = "mediaoverlaySub"
+
+            try:
+                with open(folder+"medias/"+token.value[0], 'rb') as vid:
+                    #print("VIDEO OPTIONS : ", token.value[1])
+                    classes = ""
+                    classes_pos = ""
+                    shift_top = "0px"
+                    shift_right = "0px"
+                    shift_bottom = "0px"
+                    shift_left = "0px"
+                    if token.value[1] is not None:
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
-                            classes = classes + arg + " "
-                        if PORTABLE_MEDIAS:
-                            video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
+
+                            if arg == "inline":
+                                inline = True
+                            if arg[:8] == "position":
+                                classes_pos = classes_pos + arg + " "
+                            if arg[:5] == "shift":
+                                arg = arg.split("_")[1]
+                                if len(arg.split('+')) != 4:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    sys.exit(1)
+
+                                shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
+                                shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
+                                shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
+                                shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+
+                            else:
+                                classes = classes + arg + " "
+
+                    if PORTABLE_MEDIAS:
+                        if inline:
+                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
                         else:
-                            video_html = f"<video style='width: calc(20*var(--unit_x))' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
-                        current_frame.contents.append( video_html )
-                except:
-                    current_frame.contents.append( f"<p> empty video pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
+                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"
+                    else:
+                        if inline:
+                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
+                        else:
+                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video></div>"
+                    current_frame.contents.append( video_html )
+            except:
+                current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
             sys.exit(1)
 
     if token.type == "IMAGE":
         if current_frame:
-            if type(token.value) != type( tuple() ):
-                try:
-                    with open(folder+"medias/"+token.value, 'rb') as img:
-                        if PORTABLE_MEDIAS:
-                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'</img>"
-                        else:
-                            image_html = f"<img style='width: calc(20*var(--unit_x))' src='{folder}medias/{token.value}'</img>"
-                    current_frame.contents.append( image_html )
-                except:
-                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : '{folder}medias/{token.value} '</p>" )
-            else:
-                try:
-                    with open(folder+"medias/"+token.value[0], 'rb') as img:
-                        #print("IMAGE OPTIONS : ", token.value[1])
-                        classes = ""
+            imgclass = "mediaoverlay"
+            if current_frame.subtitle is not None:
+                imgclass = "mediaoverlaySub"
+            inline = False
+
+            try:
+                with open(folder+"medias/"+token.value[0], 'rb') as img:
+                    #print("IMAGE OPTIONS : ", token.value[1])
+                    classes = ""
+                    classes_pos = ""
+                    shift_top = "0px"
+                    shift_right = "0px"
+                    shift_bottom = "0px"
+                    shift_left = "0px"
+                    if token.value[1] is not None:
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
-                            classes = classes + arg + " "
-                        if PORTABLE_MEDIAS:
-                            image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"
+                            if arg == "inline":
+                                inline = True
+                            if arg[:8] == "position":
+                                classes_pos = classes_pos + arg + " "
+                            if arg[:5] == "shift":
+                                arg = arg.split("_")[1]
+                                if len(arg.split('+')) != 4:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    sys.exit(1)
+
+                                shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
+                                shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
+                                shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
+                                shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+                            else:
+                                classes = classes + arg + " "
+
+                    if PORTABLE_MEDIAS:
+                        if inline:
+                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"
                         else:
-                            image_html = f"<img style='width: calc(20*var(--unit_x))' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
-                    current_frame.contents.append( image_html )
-                except:
-                    current_frame.contents.append( f"<p> empty image pane, cannot find the file : '{folder}medias/{token.value[0]} '</p>" )
+                            image_html = f"<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"
+                    else:
+                        if inline:
+                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
+                        else:
+                            image_html = f"<div class='{imgclass} {imgclass_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[1]}'></img></div>"
+                current_frame.contents.append( image_html )
+            except:
+                current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
             sys.exit(1)
@@ -398,14 +448,19 @@ def write_output_html_file(presentation, css_variable, folder, name="output.html
     for k in range(len(presentation.sections)):
         for l in range(len(presentation.sections[k].subsections)):
             for m in range(len(presentation.sections[k].subsections[l].frames)):
-                if presentation.sections[k].subsections[l].frames[m].subtitle:
+                classes = ""
+                for arg in presentation.sections[k].subsections[l].frames[m].options:
+                    arg = arg.replace(" ", "")
+                    arg = arg.replace("=", "_")
+                    classes += arg + " "
+                if presentation.sections[k].subsections[l].frames[m].subtitle is not None:
                     FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div>"
                 else:
                     FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div>"
                 if presentation.sections[k].subsections[l].frames[m].subtitle:
-                    FRAME_BODY = FRAME_BODY + "<div class='frameContentSub'>"
+                    FRAME_BODY = FRAME_BODY + f"<div class='frameContentSub {classes}'>"
                 else:
-                    FRAME_BODY = FRAME_BODY + "<div class='frameContent'>"
+                    FRAME_BODY = FRAME_BODY + f"<div class='frameContent {classes}'>"
                 for content in presentation.sections[k].subsections[l].frames[m].contents:
                     FRAME_BODY = FRAME_BODY + content
                 FRAME_BODY = FRAME_BODY + "</div>"

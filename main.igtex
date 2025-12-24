@@ -7,41 +7,46 @@
 \section{Intro}
 \subsection{some frames}
 
-\begin{frame}{Welcome}
+\begin{frame}{Welcome}[align=bottom]
 Hello, welcome to coding in **ImGoaTeX**!
-\image{ImGoaTeX-squared.png}[position=right]
+\image{ImGoaTeX-squared.png}[position=top]
 \pause Here I used a pause command to make a Beamer-like animation that simply copies a frame \\ Have fun using **ImGoaTex** !
 \end{frame}
 
 \section{tests of features}
 \subsection{medias}
 
-\begin{frame}{Video, with a size=1}
-\video{myvideo.mkv}[size=1]
+\begin{frame}{Video, with a size=1}[align=top-right]
+\video{myvideo.mkv}[size=2, position=left-bottom]
+some text, the align is top-right \\ the image is shifted to $20$ **y-paging units** to the top !
+\image{ImGoaTeX.png}[size=3, shift = 20+0+0+0]
 \end{frame}
 
 
-\begin{frame}{images}{with no arguments}
+\begin{frame}{images}{with no arguments}[align=right]
 \image{ImGoaTeX.png} ceci est un test # commentaire
 \end{frame}
 
 \begin{frame}{images}{with a size=2, right-top, with a subtitle}
 \image{mygif.gif}[position=right-top, size=2]
+some text, the image will be inline :
+\image{ImGoaTeX.png}[size=3, shift = 0+10+0+0, inline]
+some more text
 \end{frame}
 
-\begin{frame}{imageswith a size=2, left-bottom, with no subtitle}
+\begin{frame}{images with a size=2, left-bottom, with no subtitle}
 \image{mygif.gif}[position=left-bottom, size=2]
 \end{frame}
 
-\begin{frame}{imageswith a size=2, right-bottom}
-\image{mygif.gif}[position=right-bottom, size=2] \end{frame}
+\begin{frame}{images with a size=2, right-bottom}
+\image{mygif.gif}[size=2, position=right-bottom] \end{frame}
 
 
 
 
 \begin{frame}{image size=3}
 here is an image of size 3 
-\image{archgif.gif}[position=right, size=3]
+\image{archgif.gif}[size=3, position=right]
 here is some text that is written after the image
 \end{frame}
 
