@@ -24,6 +24,7 @@ TOKEN_PATTERNS = [
     (r'^\\item\{(.+?)\}', "ITEM"),
     (r'^\\subitem\{(.+?)\}', "SUBITEM"),
     (r'^\\subsubitem\{(.+?)\}', "SUBSUBITEM"),
+    (r'^\\box\{([^}]*)\}(?:\[([^\]]*)\])?', "BOX"),
     (r'^#\.*', "COMMENT"),
     (r'^\\pause', "PAUSE"),
     (r'^\\note\{(.+?)\}', "NOTE"),
@@ -90,6 +91,14 @@ def tokenize_expression(expression, line_number):
                 if matching.group(1):
                     token_inside, _ = tokenize_expression("◌ " + matching.group(1), line_number)
                 return ( Token(typ, token_inside, line_number) ), rest_expression
+
+            elif typ == "BOX":
+                if matching.groups()[1]:
+                    inside_box, args_text = matching.group(1), matching.group(2).split(",")
+                    inside_box_token = tokenize_expression(inside_box, line_number)
+                    return Token(typ, tuple([inside_box_token, args_text]), line_number), rest_expression
+                else:
+                    return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
 
 
 
@@ -290,6 +299,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                     shift_right = "0px"
                     shift_bottom = "0px"
                     shift_left = "0px"
+                    degre="0deg"
                     if token.value[1] is not None:
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
@@ -299,6 +309,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                                 inline = True
                             if arg[:8] == "position":
                                 classes_pos = classes_pos + arg + " "
+                            if arg[:6] == "rotate":
+                                try:
+                                    degre = f"{ str(int(arg.split('_')[1])) }deg"
+                                except:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use an integer (deg)")
+                                    sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
                                 if len(arg.split('+')) != 4:
@@ -315,14 +331,14 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
                     if PORTABLE_MEDIAS:
                         if inline:
-                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
+                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
                         else:
-                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"
+                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"
                     else:
                         if inline:
-                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
+                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
                         else:
-                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video></div>"
+                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video></div>"
                     current_frame.contents.append( video_html )
             except:
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
@@ -346,6 +362,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                     shift_right = "0px"
                     shift_bottom = "0px"
                     shift_left = "0px"
+                    degre="0deg"
                     if token.value[1] is not None:
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
@@ -354,6 +371,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                                 inline = True
                             if arg[:8] == "position":
                                 classes_pos = classes_pos + arg + " "
+                            if arg[:6] == "rotate":
+                                try:
+                                    degre = f"{ str(int(arg.split('_')[1])) }deg"
+                                except:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use an integer (deg)")
+                                    sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
                                 if len(arg.split('+')) != 4:
@@ -369,14 +392,14 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
                     if PORTABLE_MEDIAS:
                         if inline:
-                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"
+                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"
                         else:
-                            image_html = f"<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"
+                            image_html = f"<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"
                     else:
                         if inline:
-                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
+                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
                         else:
-                            image_html = f"<div class='{imgclass} {imgclass_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}' class='{classes}' src='{folder}medias/{token.value[1]}'></img></div>"
+                            image_html = f"<div class='{imgclass} {imgclass_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img></div>"
                 current_frame.contents.append( image_html )
             except:
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
