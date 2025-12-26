@@ -6,6 +6,9 @@ import argparse
 from pathlib import Path
 import base64
 import os, sys, copy
+import time
+
+time_compile = time.time()
 
 ABS_COMPILOR_PATH = os.path.dirname(os.path.abspath(__file__))+"/"
 
@@ -460,9 +463,9 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                         classes = classes + arg + " "
 
             if inline:
-                text_inside_html = f"<div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre});'>{ parse_text_to_html( token.value[0].value, fontsize ) }</div>"
+                text_inside_html = f"<div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre});'><div>{ parse_text_to_html( token.value[0].value, fontsize ) }</div></div>"
             else:
-                text_inside_html = f"<div class='{imgclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'>{ parse_text_to_html( token.value[0].value, fontsize ) }</div></div>"
+                text_inside_html = f"<div class='{imgclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div>{ parse_text_to_html( token.value[0].value, fontsize ) }</div></div></div>"
             current_frame.contents.append( text_inside_html )
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a textbox to a frame")
@@ -611,3 +614,4 @@ if __name__ == "__main__" :
         presentation = parse(tokens, folder)
         css_variable = root_css()
         write_output_html_file(presentation, css_variable, folder)
+        print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./output.html` in {(time.time() - time_compile):.3f} seconds \n")

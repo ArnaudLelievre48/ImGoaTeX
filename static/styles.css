@@ -224,6 +224,9 @@ body {
 	text-align: center !important;
 	width: 100%;
 }
+div.border div {
+	border: solid calc(0.2*var(--unit_x)) var(--color1)
+}
 .position_right {
 	align-items: end;
 	justify-content: center;
