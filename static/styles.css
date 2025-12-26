@@ -74,7 +74,8 @@ h3 {
 }
 p {
 	font-size: calc(1*var(--unit_x));
-	color: var(--color4)
+	color: var(--color4);
+	z-index: 999;
 }
 
 body {
@@ -187,7 +188,7 @@ body {
 	margin-bottom: calc( 50vh - 60*var(--unit_y) );
 	left: calc( 50vw - 50*var(--unit_x) );
 	right: calc( 50vw - 50*var(--unit_x) );
-	z-index: 999;
+	z-index: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -203,7 +204,7 @@ body {
 	margin-bottom: calc( 50vh - 58*var(--unit_y) );
 	left: calc( 50vw - 50*var(--unit_x) );
 	right: calc( 50vw - 50*var(--unit_x) );
-	z-index: 999;
+	z-index: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -219,6 +220,10 @@ body {
   z-index: 999999 !important;
 }
 
+.wrapper p {
+	text-align: center !important;
+	width: 100%;
+}
 .position_right {
 	align-items: end;
 	justify-content: center;
@@ -267,7 +272,10 @@ body {
 	align-items: start;
 	justify-content: end;
 }
-
+.position_center {
+	align-items: center;
+	justify-content: center;
+}
 
 
 .size_1 {
@@ -287,51 +295,69 @@ body {
 .align_left {
 	justify-content: center;
 	align-items: start;
+	text-align: start;
 }
 .align_left-top {
 	justify-content: start;
 	align-items: start;
+	text-align: start;
 }
 .align_top-left {
 	justify-content: start;
 	align-items: start;
+	text-align: start;
 }
 .align_left-bottom {
 	justify-content: end;
 	align-items: start;
+	text-align: start;
 }
 .align_bottom-left {
 	justify-content: end;
 	align-items: start;
+	text-align: start;
 }
 .align_right {
 	justify-content: center;
 	align-items: end;
+	text-align: end;
 }
 .align_right-top {
 	justify-content: start;
 	align-items: end;
+	text-align: end;
 }
 .align_top-right {
 	justify-content: start;
 	align-items: end;
+	text-align: end;
 }
 .align_right-bottom {
 	justify-content: end;
 	align-items: end;
+	text-align: end;
 }
 .align_bottom-right {
 	justify-content: end;
 	align-items: end;
+	text-align: end;
 }
 .align_top {
 	justify-content: start;
 	align-items: center;
+	text-align: center;
 }
 .align_bottom {
 	justify-content: end;
 	align-items: center;
+	text-align: center;
 }
+.align_center {
+	justify-content: center !important;
+	align-items: center !important;
+	text-align: center;
+}
+
 
 
 

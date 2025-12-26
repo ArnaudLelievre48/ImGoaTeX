@@ -13,6 +13,9 @@ Token = namedtuple("Token", ["type", "value", "line"])
 
 # regex patterns
 #(r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
+# (r'^\\item\{(.+?)\}', "ITEM"),
+# (r'^\\subitem\{(.+?)\}', "SUBITEM"),
+# (r'^\\textbox\{([^}]*)\}(?:\[([^\]]*)\])?', "TEXTBOX"),
 TOKEN_PATTERNS = [
     (r'^%(.+?):\s*(.+)$', "META"),
     (r'^\\section\{(.+?)\}', "SECTION"),
@@ -21,13 +24,11 @@ TOKEN_PATTERNS = [
     (r'^\\end\{frame\}', "END_FRAME"),
     (r'^\\video\{([^}]*)\}(?:\[([^\]]*)\])?', "VIDEO"),
     (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
-    (r'^\\item\{(.+?)\}', "ITEM"),
-    (r'^\\subitem\{(.+?)\}', "SUBITEM"),
-    (r'^\\subsubitem\{(.+?)\}', "SUBSUBITEM"),
-    (r'^\\box\{([^}]*)\}(?:\[([^\]]*)\])?', "BOX"),
+    (r'^\\textbox\{((?:\$[^$]*\$|[^}])*)\}(?:\[([^\]]*)\])?', "TEXTBOX"),
+    (r'\\item\{((?:\$[^$]*\$|[^}])*)\}', "ITEM"),
+    (r'\\subitem\{((?:\$[^$]*\$|[^}])*)\}', "SUBSUBITEM"),
     (r'^#\.*', "COMMENT"),
     (r'^\\pause', "PAUSE"),
-    (r'^\\note\{(.+?)\}', "NOTE"),
 ]
 
 
@@ -77,6 +78,13 @@ def tokenize_expression(expression, line_number):
                 else:
                     return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
 
+            elif typ == "TEXTBOX":
+                if matching.groups()[1]:
+                    text_inside_token, args_text = Token("TEXT", matching.group(1), line_number), matching.group(2).split(",")
+                    return Token(typ, tuple([text_inside_token, args_text]), line_number ), rest_expression
+                else:
+                    return Token(typ, tuple([Token("TEXT", matching.group(1), line_number), None]), line_number), rest_expression
+
             elif typ == "ITEM":
                 if matching.group(1):
                     token_inside, _ = tokenize_expression("● " + matching.group(1), line_number)
@@ -91,15 +99,6 @@ def tokenize_expression(expression, line_number):
                 if matching.group(1):
                     token_inside, _ = tokenize_expression("◌ " + matching.group(1), line_number)
                 return ( Token(typ, token_inside, line_number) ), rest_expression
-
-            elif typ == "BOX":
-                if matching.groups()[1]:
-                    inside_box, args_text = matching.group(1), matching.group(2).split(",")
-                    inside_box_token = tokenize_expression(inside_box, line_number)
-                    return Token(typ, tuple([inside_box_token, args_text]), line_number), rest_expression
-                else:
-                    return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
-
 
 
             else:
@@ -300,6 +299,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                     shift_bottom = "0px"
                     shift_left = "0px"
                     degre="0deg"
+                # treat options
                     if token.value[1] is not None:
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
@@ -311,9 +311,9 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                                 classes_pos = classes_pos + arg + " "
                             if arg[:6] == "rotate":
                                 try:
-                                    degre = f"{ str(int(arg.split('_')[1])) }deg"
+                                    degre = f"{ str(float(arg.split('_')[1])) }deg"
                                 except:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use an integer (deg)")
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
                                     sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
@@ -343,7 +343,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             except:
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a video to a frame")
             sys.exit(1)
 
     if token.type == "IMAGE":
@@ -355,7 +355,6 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
             try:
                 with open(folder+"medias/"+token.value[0], 'rb') as img:
-                    #print("IMAGE OPTIONS : ", token.value[1])
                     classes = ""
                     classes_pos = ""
                     shift_top = "0px"
@@ -363,6 +362,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                     shift_bottom = "0px"
                     shift_left = "0px"
                     degre="0deg"
+                    # treat options
                     if token.value[1] is not None:
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
@@ -373,9 +373,9 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                                 classes_pos = classes_pos + arg + " "
                             if arg[:6] == "rotate":
                                 try:
-                                    degre = f"{ str(int(arg.split('_')[1])) }deg"
+                                    degre = f"{ str(float(arg.split('_')[1])) }deg"
                                 except:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use an integer (deg)")
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
                                     sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
@@ -400,13 +400,78 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                             image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
                         else:
                             image_html = f"<div class='{imgclass} {imgclass_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img></div>"
+
                 current_frame.contents.append( image_html )
             except:
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an image to a frame")
             sys.exit(1)
+
+    if token.type == "TEXTBOX":
+        if current_frame:
+            imgclass = "mediaoverlay"
+            inline = False
+            if current_frame.subtitle is not None:
+                imgclass = "mediaoverlaySub"
+
+            classes = ""
+            classes_pos = ""
+            fontsize = 1
+            shift_top = "0px"
+            shift_right = "0px"
+            shift_bottom = "0px"
+            shift_left = "0px"
+            degre="0deg"
+            # treat options
+            if token.value[1] is not None:
+                for arg in token.value[1]:
+                    arg = arg.replace(" ", "")
+                    arg = arg.replace("=", "_")
+
+                    if arg == "inline":
+                        inline = True
+                    elif arg[:8] == "position":
+                        classes_pos = classes_pos + arg + " "
+                    elif arg[:8] == "fontsize":
+                        try:
+                            fontsize = float(arg.split('_')[1])
+                        except:
+                            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (paging unit x)")
+
+                    elif arg[:6] == "rotate":
+                        try:
+                            degre = f"{ str(float(arg.split('_')[1])) }deg"
+                        except:
+                            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                            sys.exit(1)
+                    elif arg[:5] == "shift":
+                        arg = arg.split("_")[1]
+                        if len(arg.split('+')) != 4:
+                            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                            sys.exit(1)
+
+                        shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
+                        shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
+                        shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
+                        shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+
+                    else:
+                        classes = classes + arg + " "
+
+            if inline:
+                text_inside_html = f"<div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre});'>{ parse_text_to_html( token.value[0].value, fontsize ) }</div>"
+            else:
+                text_inside_html = f"<div class='{imgclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'>{ parse_text_to_html( token.value[0].value, fontsize ) }</div></div>"
+            current_frame.contents.append( text_inside_html )
+        else:
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a textbox to a frame")
+            sys.exit(1)
+
     return(current_frame)
+
+
+
 
 
 # creates the presentation from the tokens
@@ -419,7 +484,7 @@ def parse(tokens, folder, PORTABLE_MEDIAS=True):
 
 
 # parse text in html format
-def parse_text_to_html(text):
+def parse_text_to_html(text, fontsize=1):
     parts = re.split(r'(\\\\|\\n)', text)
     bad = {r"\\", r"\n", r""}
     for i in range(len(parts)):
@@ -435,7 +500,7 @@ def parse_text_to_html(text):
     outText = ''
     for part in parts:
         if part not in bad:
-            outText = outText + f"<p>{part}</p>"
+            outText = outText + f"<p style='font-size: calc({fontsize}*var(--unit_x))'>{part}</p>"
     return(outText)
 
 
@@ -511,6 +576,7 @@ def write_output_html_file(presentation, css_variable, folder, name="output.html
         with open(ABS_COMPILOR_PATH + "katex/auto_render_min.js", 'r') as katex_render_min_js_file:
             katex_render_min_js = f"<script defer>{katex_render_min_js_file.read()}</script>"
             katex_render_min_js += """<script> document.addEventListener("DOMContentLoaded", function() { renderMathInElement(document.body, { delimiters: [ { left: "$$", right: "$$", display: true }, { left: "$", right: "$",  display: false } ] }); }); </script>"""
+
     except:
         print("KaTeX files not found, please run `install.sh`")
         sys.exit(1)
