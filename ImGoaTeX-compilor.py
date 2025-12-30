@@ -206,6 +206,28 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
                 presentaton.date = datetime.strptime(try_date)
             except:
                 None # default date with datetime.datetime -> see the presentation class
+        if key == "as_w":
+            CSSVARS[0] = val
+        if key == "as_h":
+            CSSVARS[1] = val
+        if key == "bgcolor":
+            CSSVARS[2] = val
+        if key == "color1":
+            CSSVARS[3] = val
+        if key == "color2":
+            CSSVARS[4] = val
+        if key == "color3":
+            CSSVARS[5] = val
+        if key == "color4":
+            CSSVARS[6] = val
+
+
+
+
+
+
+
+
 
     if token.type == "SECTION":
         if token.value: # if the section has a title
@@ -597,6 +619,16 @@ if __name__ == "__main__" :
     arguments_parser.add_argument("filename", help="The file to compile")
     args = arguments_parser.parse_args()
 
+    CSSVARS= [
+        16,
+        9,
+        "#faf3e1", #bgcolor
+        "#6b3016", #color1
+        "#783a1f", #color2
+        "#ad5e3b", #color3
+        "#362821", #color4
+    ]
+
     if args.filename:
         file_path = Path(args.filename)
         if not file_path.is_file():
@@ -612,6 +644,6 @@ if __name__ == "__main__" :
         lines = igtexFile.readlines()
         tokens = tokenize_lines(lines)
         presentation = parse(tokens, folder)
-        css_variable = root_css()
+        css_variable = root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6])
         write_output_html_file(presentation, css_variable, folder)
         print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./output.html` in {(time.time() - time_compile):.3f} seconds \n")
