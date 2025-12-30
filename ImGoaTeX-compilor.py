@@ -586,9 +586,9 @@ def write_output_html_file(presentation, css_variable, folder, name="output.html
 
     with open(folder+name, "w+") as outfile:
         if CSS_FILE_GENERATION:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button></div>{body}</body>{javascript}</html>""")
         else:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button></div>{body}</body>{javascript}</html>""")
 
 
 

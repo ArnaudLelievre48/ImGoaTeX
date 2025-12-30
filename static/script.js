@@ -1,5 +1,7 @@
 <script>
 let currentSlide = 0;
+let count = document.querySelectorAll('.frame').length;
+console.log(count)
 const slideInput = document.getElementById("slideNumber");
 
 // Find all slides with numeric IDs and sort them
@@ -20,8 +22,10 @@ const goToSlide = n => {
 goToSlide(0);
 
 // Up/Down buttons
+document.getElementById("start").addEventListener("click", () => goToSlide(0));
 document.getElementById("up").addEventListener("click", () => goToSlide(currentSlide - 1));
 document.getElementById("down").addEventListener("click", () => goToSlide(currentSlide + 1));
+document.getElementById("end").addEventListener("click", () => goToSlide(count - 1));
 
 // Input events
 slideInput.addEventListener("change", () => goToSlide(Number(slideInput.value)));
