@@ -526,6 +526,9 @@ def parse_text_to_html(text, fontsize=1):
     for part in parts:
         if part not in bad:
             outText = outText + f"<p style='font-size: calc({fontsize}*var(--unit_x))'>{part}</p>"
+        else:
+            outText = outText + "<span style='height: calc(1* var(--unit_y))'></span>"
+
     return(outText)
 
 
