@@ -160,22 +160,21 @@ body {
 }
 .item {
 	margin-left: calc( 1 * var(--unit_x) );
-	font-size: calc(1.5*var(--unit_x));
 }
 .item p {
-	font-size: calc(1.2*var(--unit_x));
+	font-size: calc(1.2*var(--unit_x)) !important;
 }
 .subitem {
 	margin-left: calc( 4 * var(--unit_x) );
 }
 .subitem p {
-	font-size: calc(1*var(--unit_x));
+	font-size: calc(1.1*var(--unit_x)) !important;
 }
 .subsubitem {
 	margin-left: calc(7 * var(--unit_x) );
 }
 .subsubitem p {
-	font-size: calc(0.8*var(--unit_x));
+	font-size: calc(1*var(--unit_x)) !important;
 }
 
 
@@ -225,7 +224,8 @@ body {
 	width: 100%;
 }
 div.border div {
-	border: solid calc(0.2*var(--unit_x)) var(--color1)
+	border: solid calc(0.2*var(--unit_x)) var(--color1);
+	padding: calc(1*var(--unit_x));
 }
 .position_right {
 	align-items: end;

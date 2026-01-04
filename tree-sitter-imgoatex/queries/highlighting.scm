@@ -1,0 +1,12 @@
+(meta) @comment
+(section) @function
+(subsection) @function
+(begin_frame) @keyword
+(end_frame) @keyword
+(video) @function
+(image) @function
+(textbox) @string
+(item) @variable
+(subitem) @variable
+(pause) @keyword
+(comment) @comment
