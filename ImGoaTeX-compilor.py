@@ -507,11 +507,56 @@ def parse(tokens, folder, PORTABLE_MEDIAS=True):
         current_frame = parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame ,folder)
     return(presentation)
 
+#split text to avoid splittin \\ inside $...$ or $$...$$
+def split_outside_math(text):
+    parts = []
+    buf = ""
+    i = 0
+    n = len(text)
+    in_inline = False  # inside $...$
+    in_display = False  # inside $$...$$
+
+    while i < n:
+        # Detect start/end of $$...$$
+        if text[i:i+2] == "$$":
+            if in_display:
+                in_display = False
+            elif not in_inline:
+                in_display = True
+            buf += "$$"
+            i += 2
+            continue
+
+        # Detect start/end of $...$ (but skip if in display math)
+        if text[i] == "$" and not in_display:
+            in_inline = not in_inline
+            buf += "$"
+            i += 1
+            continue
+
+        # Only split if we are **outside all math**
+        if not in_inline and not in_display and text[i] in ['\\', '\n']:
+            parts.append(buf)
+            buf = ""
+            i += 1
+            continue
+
+        # Otherwise, just append the character
+        buf += text[i]
+        i += 1
+
+    # Add the last buffer
+    if buf:
+        parts.append(buf)
+    return parts
+
 
 # parse text in html format
 def parse_text_to_html(text, fontsize=1):
-    parts = re.split(r'(\\\\|\\n)', text)
-    bad = {r"\\", r"\n", r""}
+    #parts = re.split(r'(\\\\|\\n|\$)', text)
+    #parts = re.split(r'(?:\\\\|\n)(?=(?:[^$]*\$[^$]*\$)*[^$]*$)', text)
+    parts = split_outside_math(text)
+    bad = {r"\\", r"\n"}
     for i in range(len(parts)):
         # ** ... ** to <b> ... </b>
         parts[i] = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', parts[i])
