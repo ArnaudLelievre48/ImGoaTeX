@@ -593,9 +593,27 @@ def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a
     css_root = ":root {\n" + var + "}"
     return css_root
 
+def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821"):
+    var = f"""
+        --ar_width: {as_w};
+        --ar_height: {as_h};
+        --unit_x: calc( min(100vw, calc( ( var(--ar_width) / var(--ar_height) ) * 100vh) )/100 );
+        --unit_y: calc( min(100vh, calc( ( var(--ar_height) / var(--ar_width) ) * 100vw) )/100 );
+        --bgcolor: {bgcolor};
+        --color1: {color1};
+        --color2: {color2};
+        --color3: {color3};
+        --color4: {color4};
+"""
+
+    css_root = ":root.presentation {\n" + var + "}"
+    return css_root
+
+
+
 
 # takes the presentation data and generate the output file/files
-def write_output_html_file(presentation, css_variable, folder, name="output.html", CSS_FILE_GENERATION=False):
+def write_output_html_file(presentation, css_variable, css_vaariable_fullscreen, folder, name="output.html", CSS_FILE_GENERATION=False):
     PRESENTATION_FRAME = f"<div id='0'class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     OUTLINE_HTML_FRAME = ""
@@ -656,9 +674,9 @@ def write_output_html_file(presentation, css_variable, folder, name="output.html
 
     with open(folder+name, "w+") as outfile:
         if CSS_FILE_GENERATION:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><style>{css_variable_fullscreen}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div>{body}</body>{javascript}</html>""")
         else:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}<style>{css_variable}</style><style>{css_variable_fullscreen}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div>{body}</body>{javascript}</html>""")
 
 
 
@@ -693,5 +711,6 @@ if __name__ == "__main__" :
         tokens = tokenize_lines(lines)
         presentation = parse(tokens, folder)
         css_variable = root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6])
-        write_output_html_file(presentation, css_variable, folder)
+        css_variable_fullscreen = root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6])
+        write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder)
         print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./output.html` in {(time.time() - time_compile):.3f} seconds \n")

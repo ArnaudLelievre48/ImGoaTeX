@@ -57,6 +57,9 @@
 	width: 2.25vw;
 	box-shadow: 4pt 2pt 5pt #00000060;
 }
+#fullscreen {
+	margin-top: 10vh;
+}
 
 
 h1 {

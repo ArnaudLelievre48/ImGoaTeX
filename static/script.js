@@ -3,6 +3,37 @@ let currentSlide = 0;
 let count = document.querySelectorAll('.frame').length;
 console.log(count)
 const slideInput = document.getElementById("slideNumber");
+const fullscreenBtn = document.getElementById("fullscreen");
+
+fullscreenBtn?.addEventListener("click", toggleFullscreen);
+
+function toggleFullscreen() {
+  const root = document.documentElement;
+
+  if (!document.fullscreenElement) {
+    root.requestFullscreen();
+    root.classList.add("presentation");
+    goToSlide(0);
+  } else {
+    document.exitFullscreen();
+    root.classList.remove("presentation");
+    goToSlide(0);
+    goToSlide(currentSlide);
+  }
+}
+
+document.addEventListener("fullscreenchange", () => {
+  const root = document.documentElement;
+
+  if (!document.fullscreenElement) {
+    root.classList.remove("presentation");
+  }
+});
+
+
+
+
+
 
 // Find all slides with numeric IDs and sort them
 const slides = Array.from(document.querySelectorAll("div[id]"))
