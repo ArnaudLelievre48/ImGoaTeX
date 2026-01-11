@@ -1,3 +1,17 @@
+@keyframes slideFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+:root body {
+	background-color: white;
+}
+:root.presentation body {
+	background-color: black;
+}
+
+
+
 .overlay-menu {
 	transition: all ease-in-out 0.4s;
   position: fixed;
@@ -87,6 +101,7 @@ body {
 	align-items: center;
 }
 .frame {
+	opacity: 1;
 	background-color: var(--bgcolor);
 	display: flex;
 	flex-direction: column;
@@ -99,6 +114,12 @@ body {
 	margin-bottom: calc( (100vh - min(90vh, calc( ( var(--ar_height) / var(--ar_width) ) * 90vw )) ) / 2);
 	border-radius: 10pt;
 	overflow: hidden;
+}
+:root.presentation .frame {
+	opacity: 0;
+}
+:root.presentation .frame.active {
+  animation: slideFadeIn 1s ease forwards;
 }
 .outline {
 	width: calc(90 * var(--unit_x));

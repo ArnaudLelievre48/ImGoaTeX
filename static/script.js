@@ -4,6 +4,9 @@ let count = document.querySelectorAll('.frame').length;
 console.log(count)
 const slideInput = document.getElementById("slideNumber");
 const fullscreenBtn = document.getElementById("fullscreen");
+let presentationMode = false;
+let scrollLocked = false;
+const SCROLL_DELAY = 300;
 
 fullscreenBtn?.addEventListener("click", toggleFullscreen);
 
@@ -13,10 +16,13 @@ function toggleFullscreen() {
   if (!document.fullscreenElement) {
     root.requestFullscreen();
     root.classList.add("presentation");
+    presentationMode = true;
+    currentSlide = 0;
     goToSlide(0);
   } else {
     document.exitFullscreen();
     root.classList.remove("presentation");
+    presentationMode = false;
     goToSlide(0);
     goToSlide(currentSlide);
   }
@@ -27,12 +33,17 @@ document.addEventListener("fullscreenchange", () => {
 
   if (!document.fullscreenElement) {
     root.classList.remove("presentation");
+    presentationMode = false;
   }
 });
 
+function updateActiveSlide(n) {
+  document.querySelectorAll(".frame.active")
+    .forEach(f => f.classList.remove("active"));
 
-
-
+  const frame = document.getElementById(String(n));
+  if (frame) frame.classList.add("active");
+}
 
 
 // Find all slides with numeric IDs and sort them
@@ -44,7 +55,14 @@ const slides = Array.from(document.querySelectorAll("div[id]"))
 const goToSlide = n => {
   const slide = slides.find(s => Number(s.id) === n);
   if (!slide) return;
-  slide.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  if (presentationMode) {
+    console.log(n);
+    updateActiveSlide(n);
+    slide.scrollIntoView({ behavior: "instant", block: "center" });
+  } else {
+    slide.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
   currentSlide = n;
   slideInput.value = currentSlide;
 };
@@ -60,8 +78,17 @@ document.getElementById("end").addEventListener("click", () => goToSlide(count -
 
 // Input events
 slideInput.addEventListener("change", () => goToSlide(Number(slideInput.value)));
-slideInput.addEventListener("keydown", e => {
-  if (e.key === "ArrowUp") goToSlide(currentSlide + 1);
-  if (e.key === "ArrowDown") goToSlide(currentSlide - 1);
+window.addEventListener("keydown", e => {
+  e.preventDefault();
+  if (e.key === "ArrowDown") goToSlide(currentSlide + 1);
+  if (e.key === "ArrowUp") goToSlide(currentSlide - 1);
 });
+window.addEventListener("wheel", e => {
+  e.preventDefault();
+  if (scrollLocked) return;
+  scrollLocked = true;
+  if (e.deltaY > 0) goToSlide(currentSlide+1) 
+  else goToSlide(currentSlide-1);
+  setTimeout(() => { scrollLocked = false; }, SCROLL_DELAY);
+  }, { passive: false });
 </script>
