@@ -182,8 +182,8 @@ body {
 .frameContent {
 	display: flex;
 	flex-direction: column;
-	align-items: start;
-	justify-content: center;
+	align-items: start !important;
+	justify-content: center !important;
 	height: calc(74 * var(--unit_y));
 	padding-top: 3%;
 	padding-bottom: 3%;
@@ -195,8 +195,8 @@ body {
 .frameContentSub {
 	display: flex;
 	flex-direction: column;
-	align-items: start;
-	justify-content: center;
+	align-items: start !important;
+	justify-content: center !important;
 	height: calc(68 * var(--unit_y));
 	padding-top: 3%;
 	padding-bottom: 3%;
@@ -244,9 +244,7 @@ body {
 .mediaoverlay {
 	position: absolute;
 	width: calc(100*var(--unit_x));
-	height: calc(80*var(--unit_y));
-	margin-top: min(0vh, calc( 50vh - 60*var(--unit_y) ));
-	margin-bottom: min(0vh, calc( 50vh - 60*var(--unit_y) ));
+	height: calc(81*var(--unit_y));
 	left: calc( 50vw - 50*var(--unit_x) );
 	right: calc( 50vw - 50*var(--unit_x) );
 	z-index: 0;
@@ -345,14 +343,31 @@ div.border div {
 .size_1 {
 	width: min(90%, calc(60*var(--unit_x))) !important;
 }
+
+iframe.size_1 {
+	width: min(90%, calc(60*var(--unit_x))) !important;
+	height: min(90%, calc(50*var(--unit_y))) !important;
+}
 .size_2 {
 	width: min(90%, calc(30*var(--unit_x))) !important;
+}
+iframe.size_2 {
+	width: min(90%, calc(30*var(--unit_x))) !important;
+	height: min(90%, calc(25*var(--unit_y))) !important;
 }
 .size_3 {
 	width: min(90%, calc(15*var(--unit_x))) !important;
 }
+iframe.size_3 {
+	width: min(90%, calc(15*var(--unit_x))) !important;
+	height: min(90%, calc(12.5*var(--unit_y))) !important;
+}
 .size_4 {
 	width: min(90%, calc(7.5*var(--unit_x))) !important;
+}
+iframe.size_4 {
+	width: min(90%, calc(7.5*var(--unit_x))) !important;
+	height: min(90%, calc(6.25*var(--unit_y))) !important;
 }
 
 

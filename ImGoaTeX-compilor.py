@@ -7,6 +7,7 @@ from pathlib import Path
 import base64
 import os, sys, copy
 import time
+import urllib.request
 
 time_compile = time.time()
 
@@ -27,6 +28,7 @@ TOKEN_PATTERNS = [
     (r'^\\end\{frame\}', "END_FRAME"),
     (r'^\\video\{([^}]*)\}(?:\[([^\]]*)\])?', "VIDEO"),
     (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
+    (r'^\\iframe\{([^}]*)\}(?:\[([^\]]*)\])?', "IFRAME"),
     (r'^\\textbox\{((?:\$[^$]*\$|[^}])*)\}(?:\[([^\]]*)\])?', "TEXTBOX"),
     (r'\\item\{((?:\$[^$]*\$|[^}])*)\}', "ITEM"),
     (r'\\subitem\{((?:\$[^$]*\$|[^}])*)\}', "SUBSUBITEM"),
@@ -80,6 +82,14 @@ def tokenize_expression(expression, line_number):
                     return Token(typ, tuple([video_source, args_vid]), line_number), rest_expression
                 else:
                     return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
+
+            elif typ == "IFRAME":
+                if matching.groups()[1]:
+                    website_source, args_web = matching.group(1), matching.group(2).split(",")
+                    return Token(typ, tuple([website_source, args_web]), line_number ), rest_expression
+                else:
+                    return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
+
 
             elif typ == "TEXTBOX":
                 if matching.groups()[1]:
@@ -434,6 +444,65 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an image to a frame")
             sys.exit(1)
+
+    if token.type == "IFRAME":
+        if current_frame:
+            iframeclass = "mediaoverlay"
+            if current_frame.subtitle is not None:
+                iframeclass = "mediaoverlaySub"
+            inline = False
+
+            try:
+                if urllib.request.urlopen(token.value[0]).getcode() == 200:
+                    classes = ""
+                    classes_pos = ""
+                    shift_top = "0px"
+                    shift_right = "0px"
+                    shift_bottom = "0px"
+                    shift_left = "0px"
+                    degre="0deg"
+                    # treat options
+                    if token.value[1] is not None:
+                        for arg in token.value[1]:
+                            arg = arg.replace(" ", "")
+                            arg = arg.replace("=", "_")
+                            if arg == "inline":
+                                inline = True
+                            if arg[:8] == "position":
+                                classes_pos = classes_pos + arg + " "
+                            if arg[:6] == "rotate":
+                                try:
+                                    degre = f"{ str(float(arg.split('_')[1])) }deg"
+                                except:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    sys.exit(1)
+                            if arg[:5] == "shift":
+                                arg = arg.split("_")[1]
+                                if len(arg.split('+')) != 4:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    sys.exit(1)
+
+                                shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
+                                shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
+                                shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
+                                shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+                            else:
+                                classes = classes + arg + " "
+
+                    if inline:
+                        iframe_html = f"<iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe>"
+                    else:
+                        iframe_html = f"<div class='{iframeclass} {classes_pos}'><iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe></div>"
+
+                current_frame.contents.append( iframe_html )
+            except:
+                current_frame.contents.append( f"<div class='{iframeclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
+        else:
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an image to a frame")
+            sys.exit(1)
+
+
+
 
     if token.type == "TEXTBOX":
         if current_frame:

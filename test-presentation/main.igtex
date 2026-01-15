@@ -69,3 +69,8 @@ here is some text that is written after the image
 Intégrale gaussienne : $\int_{-\infty}^{+\infty} e^{-x^2} dx = \sqrt{\pi}$
 Intégrale gaussienne double signe dollard : $$\int_{-\infty}^{+\infty} e^{-x^2} dx = \sqrt{\pi}$$
 \end{frame}
+
+\subsection{test de iframe}
+\begin{frame}{tests iframe}
+\iframe{https://docs.google.com/spreadsheets/d/e/2PACX-1vSZTHvJ0v4zfKEgXnaJE9uOrBxA_G3s4HqdSXxLnRaVgUaI4zpR5t4--YcFkCfNkmGTHR6fAtay6tEW/pubhtml}[size=1, position=right, shift = 0+0+0+0]
+\end{frame}
