@@ -220,6 +220,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             CSSVARS[5] = val
         if key == "color4":
             CSSVARS[6] = val
+        if key == "basefontsize":
+            CSSVARS[7] = val
 
 
 
@@ -577,7 +579,7 @@ def parse_text_to_html(text, fontsize=1):
     return(outText)
 
 
-def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821"):
+def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.2):
     var = f"""
         --ar_width: {as_w};
         --ar_height: {as_h};
@@ -588,12 +590,13 @@ def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a
         --color2: {color2};
         --color3: {color3};
         --color4: {color4};
+        --basefontsize: calc({basefontsize}*var(--unit_x));
 """
 
     css_root = ":root {\n" + var + "}"
     return css_root
 
-def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821"):
+def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.2):
     var = f"""
         --ar_width: {as_w};
         --ar_height: {as_h};
@@ -604,6 +607,7 @@ def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", co
         --color2: {color2};
         --color3: {color3};
         --color4: {color4};
+        --basefontsize: calc({basefontsize}*var(--unit_x));
 """
 
     css_root = ":root.presentation {\n" + var + "}"
@@ -693,6 +697,7 @@ if __name__ == "__main__" :
         "#783a1f", #color2
         "#ad5e3b", #color3
         "#362821", #color4
+        1.2, #basefontsize
     ]
 
     if args.filename:
@@ -710,7 +715,7 @@ if __name__ == "__main__" :
         lines = igtexFile.readlines()
         tokens = tokenize_lines(lines)
         presentation = parse(tokens, folder)
-        css_variable = root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6])
-        css_variable_fullscreen = root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6])
+        css_variable = root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7])
+        css_variable_fullscreen = root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7])
         write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder)
         print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./output.html` in {(time.time() - time_compile):.3f} seconds \n")

@@ -1,6 +1,11 @@
 @keyframes slideFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: scale(0); transform: rotate(180deg); }
+  to   { opacity: 1; transform: scale(1); transform: rotate(0deg); }
+}
+
+@keyframes slideFadeOut {
+  from { opacity: 1; transform: translate(0); }
+  to   { opacity: 0; transform: translate(-100vw, 0vh); }
 }
 
 :root body {
@@ -11,6 +16,22 @@
 }
 
 
+:root.presentation .overlay-menu {
+  background: rgba(0, 0, 0, 0.05);
+	transform: scale(0.7);
+  left: 0.5vw;
+}
+:root.presentation .overlay-menu:hover {
+  background: rgba(0, 0, 0, 0.1);
+	transform: scale(1);
+  left: 1vw;
+}
+:root.presentation .overlay-menu button {
+	background-color: #FFFFFF20;
+}
+:root.presentation .overlay-menu:hover button {
+	background-color: #FFFFFF50;
+}
 
 .overlay-menu {
 	transition: all ease-in-out 0.4s;
@@ -86,11 +107,11 @@ h2 {
 	color: var(--color2)
 }
 h3 {
-	font-size: calc(1.25*var(--unit_x));
+	font-size: calc(1.5*var(--unit_x));
 	color: var(--color3)
 }
 p {
-	font-size: calc(1*var(--unit_x));
+	font-size: calc(1*var(--basefontsize)) !important;
 	color: var(--color4);
 	z-index: 999;
 }
@@ -116,10 +137,12 @@ body {
 	overflow: hidden;
 }
 :root.presentation .frame {
+  animation: slideFadeOut 0.3s ease forwards;
 	opacity: 0;
 }
 :root.presentation .frame.active {
-  animation: slideFadeIn 1s ease forwards;
+  animation: slideFadeIn 0.3s ease forwards;
+	animation-delay: 0.3s;
 }
 .outline {
 	width: calc(90 * var(--unit_x));
@@ -186,29 +209,44 @@ body {
 	margin-left: calc( 1 * var(--unit_x) );
 }
 .item p {
-	font-size: calc(1.2*var(--unit_x)) !important;
+	font-size: calc(1.2*var(--basefontsize)) !important;
 }
 .subitem {
 	margin-left: calc( 4 * var(--unit_x) );
 }
 .subitem p {
-	font-size: calc(1.1*var(--unit_x)) !important;
+	font-size: calc(1.1*var(--basefontsize)) !important;
 }
 .subsubitem {
 	margin-left: calc(7 * var(--unit_x) );
 }
 .subsubitem p {
-	font-size: calc(1*var(--unit_x)) !important;
+	font-size: calc(1*var(--basefontsize)) !important;
 }
 
 
+
+:root.presentation .mediaoverlay {
+	height: calc(81*var(--unit_y));
+	left: 0vw;
+	right: 0vw;
+	top: 0vh;
+	margin-top: calc(19*var(--unit_y));
+}
+:root.presentation .mediaoverlaySub {
+	height: calc(74*var(--unit_y));
+	left: 0vw;
+	right: 0vw;
+	top: 0vh;
+	margin-top: calc(26*var(--unit_y));
+}
 
 .mediaoverlay {
 	position: absolute;
 	width: calc(100*var(--unit_x));
 	height: calc(80*var(--unit_y));
-	margin-top: calc( 50vh - 60*var(--unit_y) );
-	margin-bottom: calc( 50vh - 60*var(--unit_y) );
+	margin-top: min(0vh, calc( 50vh - 60*var(--unit_y) ));
+	margin-bottom: min(0vh, calc( 50vh - 60*var(--unit_y) ));
 	left: calc( 50vw - 50*var(--unit_x) );
 	right: calc( 50vw - 50*var(--unit_x) );
 	z-index: 0;
@@ -218,7 +256,6 @@ body {
 	justify-content: center;
 	overflow: hidden;
 }
-
 .mediaoverlaySub {
 	position: absolute;
 	width: calc(100*var(--unit_x));
@@ -390,6 +427,6 @@ div.border div {
 
 span.katex-display {
 	width: calc(90 * var(--unit_x)) !important;
-	font-size: calc(1.5*var(--unit_x));
+	font-size: calc(1.5*var(--basefontsize)) !important;
 	margin: 0px !important;
 }

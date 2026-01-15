@@ -51,14 +51,18 @@ const slides = Array.from(document.querySelectorAll("div[id]"))
   .filter(div => !isNaN(div.id))
   .sort((a, b) => Number(a.id) - Number(b.id));
 
+// sleep func
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 // Function to go to a slide
-const goToSlide = n => {
+const goToSlide = async (n) => {
   const slide = slides.find(s => Number(s.id) === n);
   if (!slide) return;
 
   if (presentationMode) {
     console.log(n);
     updateActiveSlide(n);
+    await sleep(300);
     slide.scrollIntoView({ behavior: "instant", block: "center" });
   } else {
     slide.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -79,9 +83,8 @@ document.getElementById("end").addEventListener("click", () => goToSlide(count -
 // Input events
 slideInput.addEventListener("change", () => goToSlide(Number(slideInput.value)));
 window.addEventListener("keydown", e => {
-  e.preventDefault();
-  if (e.key === "ArrowDown") goToSlide(currentSlide + 1);
-  if (e.key === "ArrowUp") goToSlide(currentSlide - 1);
+  if (e.key === "ArrowDown") {e.preventDefault(); goToSlide(currentSlide + 1)};
+  if (e.key === "ArrowUp") {e.preventDefault(); goToSlide(currentSlide - 1)};
 });
 window.addEventListener("wheel", e => {
   e.preventDefault();

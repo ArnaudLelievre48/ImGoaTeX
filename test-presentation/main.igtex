@@ -1,6 +1,7 @@
 %title: My Presentation
 %subtitle: My Presentation : a test actually
 %author: Arnaud Lelièvre
+# basefontsize 1.2 is the default fontsize
 
 # here is a comment : this line is discarded from the compiler
 
@@ -25,11 +26,12 @@ some text, the align is top-right \\ the image is shifted to $20$ **y-paging uni
 
 \begin{frame}{images}{with no arguments}[align=right]
 \image{ImGoaTeX.png} ceci est un test # commentaire
-\box{some text inside the text box}[position=right-bottom]
+\textbox{some text inside the text box}[position=right-bottom, shift=5+0+0+20, border]
 \end{frame}
 
 \begin{frame}{images}{with a size=2, right-top, with a subtitle}
 \image{mygif.gif}[position=right-top, size=2]
+\image{mygif.gif}[position=bottom, size=3]
 some text, the image will be inline :
 \image{ImGoaTeX.png}[size=3, shift = 0+10+0+0, inline]
 some more text
