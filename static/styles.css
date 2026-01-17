@@ -1,3 +1,7 @@
+@keyframes slideNoneIn {
+  from { opacity: 1; }
+  to   { opacity: 1; }
+}
 @keyframes slideFadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -27,6 +31,10 @@
   to   { opacity: 1; transform: rotate(0deg); }
 }
 
+@keyframes slideNoneOut {
+  from { opacity: 1; }
+  to   { opacity: 1; }
+}
 @keyframes slideFadeOut {
   from { opacity: 1; }
   to   { opacity: 0; }
@@ -197,6 +205,9 @@ body {
 }
 
 /* Out animations classes */
+:root.presentation .NoneOut {
+  animation: slideNoneOut 0.05s ease forwards;
+}
 :root.presentation .FadeOut {
   animation: slideFadeOut 0.3s ease forwards;
 }
@@ -219,9 +230,17 @@ body {
   animation: slideRotateOut 0.3s ease forwards;
 }
 
-
-
 /* IN animations classes */
+:root.presentation .active .NoneIn {
+  animation: none !important;
+  animation: slideNoneIn 0.05s ease forwards !important;
+	animation-delay: 0.0 !important;
+}
+:root.presentation .NoneIn {
+  animation: none !important;
+  animation: slideNoneIn 0.05s ease forwards !important;
+	animation-delay: 0.0 !important;
+}
 :root.presentation .active.FadeIn {
   animation: slideFadeIn 0.3s ease forwards;
 	animation-delay: 0.3s;

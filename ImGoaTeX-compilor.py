@@ -69,9 +69,11 @@ def tokenize_expression(expression, line_number):
                     sys.exit(1)
 
             elif typ == "PAUSE":
-                pause_animations = matching.groups()
+                pause_animations = matching.groups()[0]
                 if pause_animations is not None:
                     pause_animations = pause_animations.split(",")
+                else:
+                    pause_animations =  ["NoneOut"]
                 return Token(typ, pause_animations, line_number), rest_expression
 
 
@@ -294,7 +296,11 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
     if token.type == "PAUSE":
         if current_frame is not None:
-            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents, current_frame.options, current_frame.animations) )
+            pause_animations = token.value
+            if pause_animations == ["NoneOut"]:
+                pause_animations = pause_animations + current_frame.animations
+                current_frame.animations.append("NoneIn")
+            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents, current_frame.options, pause_animations ) )
             presentation.sections[-1].subsections[-1].frames.append( current_frame  )
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")

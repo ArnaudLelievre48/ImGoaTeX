@@ -11,7 +11,8 @@
 \begin{frame}{Welcome}[align=bottom]<ZoomIn, RotateOut>
 Hello, welcome to coding in **ImGoaTeX**!
 \image{ImGoaTeX-squared.png}[position=top, rotate=-20]
-\pause Here I used a pause command to make a Beamer-like animation that simply copies a frame \\ Have fun using **ImGoaTex** !
+\pause<MoveRightIn, ZoomOut>
+Here I used a pause command to make a Beamer-like animation that simply copies a frame \\ Have fun using **ImGoaTex** !
 \end{frame}
 
 \section{tests of features}
@@ -20,6 +21,7 @@ Hello, welcome to coding in **ImGoaTeX**!
 \begin{frame}{Video, with a size=1}[align=top-right]
 \video{myvideo.mkv}[size=2, position=left-bottom, rotate= 45]
 some text, the align is top-right \\ the image is shifted to $20$ **y-paging units** to the top !
+\pause
 \image{ImGoaTeX.png}[size=3, shift = 20+0+0+0]
 \end{frame}
 
