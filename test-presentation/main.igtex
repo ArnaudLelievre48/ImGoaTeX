@@ -8,7 +8,7 @@
 \section{Intro}
 \subsection{some frames}
 
-\begin{frame}{Welcome}[align=bottom]
+\begin{frame}{Welcome}[align=bottom]<ZoomIn, RotateOut>
 Hello, welcome to coding in **ImGoaTeX**!
 \image{ImGoaTeX-squared.png}[position=top, rotate=-20]
 \pause Here I used a pause command to make a Beamer-like animation that simply copies a frame \\ Have fun using **ImGoaTex** !
@@ -72,5 +72,5 @@ Intégrale gaussienne double signe dollard : $$\int_{-\infty}^{+\infty} e^{-x^2}
 
 \subsection{test de iframe}
 \begin{frame}{tests iframe}
-\iframe{https://docs.google.com/spreadsheets/d/e/2PACX-1vSZTHvJ0v4zfKEgXnaJE9uOrBxA_G3s4HqdSXxLnRaVgUaI4zpR5t4--YcFkCfNkmGTHR6fAtay6tEW/pubhtml}[size=1, position=right, shift = 0+0+0+0]
+\iframe{https://docs.google.com/spreadsheets/d/e/2PACX-1vSZTHvJ0v4zfKEgXnaJE9uOrBxA_G3s4HqdSXxLnRaVgUaI4zpR5t4--YcFkCfNkmGTHR6fAtay6tEW/pubhtml}[size=1, position=right, shift = 0+0+0+20]
 \end{frame}

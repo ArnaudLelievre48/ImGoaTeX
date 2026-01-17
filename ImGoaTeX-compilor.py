@@ -20,11 +20,12 @@ Token = namedtuple("Token", ["type", "value", "line"])
 # (r'^\\item\{(.+?)\}', "ITEM"),
 # (r'^\\subitem\{(.+?)\}', "SUBITEM"),
 # (r'^\\textbox\{([^}]*)\}(?:\[([^\]]*)\])?', "TEXTBOX"),
+# (r'\\begin\{frame\}\{([^}]*)\}(?:\{([^}]*)\})?(?:\[([^\]]*)\])?', "BEGIN_FRAME"),
 TOKEN_PATTERNS = [
     (r'^%(.+?):\s*(.+)$', "META"),
     (r'^\\section\{(.+?)\}', "SECTION"),
     (r'^\\subsection\{(.+?)\}', "SUBSECTION"),
-    (r'\\begin\{frame\}\{([^}]*)\}(?:\{([^}]*)\})?(?:\[([^\]]*)\])?', "BEGIN_FRAME"),
+    (r'\\begin\{frame\}\{([^}]*)\}(?:\{([^}]*)\})?(?:\[([^\]]*)\])?(?:\<([^\]]*)\>)?', "BEGIN_FRAME"),
     (r'^\\end\{frame\}', "END_FRAME"),
     (r'^\\video\{([^}]*)\}(?:\[([^\]]*)\])?', "VIDEO"),
     (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
@@ -33,7 +34,7 @@ TOKEN_PATTERNS = [
     (r'\\item\{((?:\$[^$]*\$|[^}])*)\}', "ITEM"),
     (r'\\subitem\{((?:\$[^$]*\$|[^}])*)\}', "SUBSUBITEM"),
     (r'^#\.*', "COMMENT"),
-    (r'^\\pause', "PAUSE"),
+    (r'^\\pause(?:\<([^\]]*)\>)?', "PAUSE"),
 ]
 
 
@@ -52,21 +53,26 @@ def tokenize_expression(expression, line_number):
                 return Token("META", (key.strip(), val.strip()), line_number), rest_expression
 
             elif typ == "BEGIN_FRAME":
-                frame_title, frame_subtitle, frame_options = matching.groups()
+                frame_title, frame_subtitle, frame_options, frame_animations = matching.groups()
                 if frame_options is not None:
                     frame_options = frame_options.split(",")
+                if frame_animations is not None:
+                    frame_animations = frame_animations.split(",")
                 if matching.groups():
-                    if len(matching.groups()) > 3:
-                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you gave too much argument to the frame '{frame_title}', it only takes 2, a title and a subtitle plus optional options")
+                    if len(matching.groups()) > 4:
+                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you gave too much argument to the frame '{frame_title}', it only takes 2, a title and a subtitle plus optional options and animations")
                         sys.exit(1)
                     else:
-                        return Token(typ, (frame_title, frame_subtitle, frame_options), line_number), rest_expression
+                        return Token(typ, (frame_title, frame_subtitle, frame_options, frame_animations), line_number), rest_expression
                 else:
                     print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you did not give any argument to the frame '{frame_title}', it takes up to 2 arguments, a title, optional subtitle plus optional options")
                     sys.exit(1)
 
             elif typ == "PAUSE":
-                return Token(typ, None, line_number), rest_expression
+                pause_animations = matching.groups()
+                if pause_animations is not None:
+                    pause_animations = pause_animations.split(",")
+                return Token(typ, pause_animations, line_number), rest_expression
 
 
             elif typ == "IMAGE":
@@ -163,13 +169,17 @@ class Subsection:
         self.frames = []
 
 class Frame:
-    def __init__(self, title=None, subtitle=None, contents=None, options=None):
+    def __init__(self, title=None, subtitle=None, contents=None, options=None, animations=None):
         self.title = title
         self.subtitle = subtitle
         if options is None:
             self.options = []
         else:
             self.options = copy.deepcopy(options)
+        if animations is None:
+            self.animations = []
+        else:
+            self.animations = copy.deepcopy(animations)
         if contents is None:
             self.contents = []
         else:
@@ -265,8 +275,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             sys.exit(1)
         if presentation.sections != []:
             if presentation.sections[-1].subsections != []:
-                frame_title, frame_subtitle, frame_options = token.value
-                presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle, None, frame_options) )
+                frame_title, frame_subtitle, frame_options, frame_animations = token.value
+                presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle, None, frame_options, frame_animations) )
                 current_frame = presentation.sections[-1].subsections[-1].frames[-1]
             else:
                 print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
@@ -284,7 +294,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
     if token.type == "PAUSE":
         if current_frame is not None:
-            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents, current_frame.options) )
+            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents, current_frame.options, current_frame.animations) )
             presentation.sections[-1].subsections[-1].frames.append( current_frame  )
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")
@@ -701,10 +711,13 @@ def write_output_html_file(presentation, css_variable, css_vaariable_fullscreen,
         for l in range(len(presentation.sections[k].subsections)):
             for m in range(len(presentation.sections[k].subsections[l].frames)):
                 classes = ""
+                classes_animations = ""
                 for arg in presentation.sections[k].subsections[l].frames[m].options:
                     arg = arg.replace(" ", "")
                     arg = arg.replace("=", "_")
                     classes += arg + " "
+                for arg in presentation.sections[k].subsections[l].frames[m].animations:
+                    classes_animations += arg + " "
                 if presentation.sections[k].subsections[l].frames[m].subtitle is not None:
                     FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div>"
                 else:
@@ -716,7 +729,7 @@ def write_output_html_file(presentation, css_variable, css_vaariable_fullscreen,
                 for content in presentation.sections[k].subsections[l].frames[m].contents:
                     FRAME_BODY = FRAME_BODY + content
                 FRAME_BODY = FRAME_BODY + "</div>"
-                FRAME_BODY = f"<div id='{frame_number}' class='frame'>{FRAME_BODY}</div>"
+                FRAME_BODY = f"<div id='{frame_number}' class='frame {classes_animations}'>{FRAME_BODY}</div>"
                 frame_number+=1
                 FRAMES = FRAMES + FRAME_BODY
 

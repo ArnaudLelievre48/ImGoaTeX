@@ -1,11 +1,59 @@
 @keyframes slideFadeIn {
-  from { opacity: 0; transform: scale(0); transform: rotate(180deg); }
-  to   { opacity: 1; transform: scale(1); transform: rotate(0deg); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideMoveLeftIn {
+  from { opacity: 0; transform: translate(-100vw, 0vh); }
+  to   { opacity: 1; transform: translate(0); }
+}
+@keyframes slideMoveRightIn {
+  from { opacity: 0; transform: translate(100vw, 0vh); }
+  to   { opacity: 1; transform: translate(0); }
+}
+@keyframes slideMoveTopIn {
+  from { opacity: 0; transform: translate(0vw, 100vh); }
+  to   { opacity: 1; transform: translate(0); }
+}
+@keyframes slideMoveBottomIn {
+  from { opacity: 0; transform: translate(0vw, -100vh); }
+  to   { opacity: 1; transform: translate(0); }
+}
+@keyframes slideZoomIn {
+  from { opacity: 0; transform: scale(0); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideRotateIn {
+  from { opacity: 0; transform: rotate(180deg); }
+  to   { opacity: 1; transform: rotate(0deg); }
 }
 
 @keyframes slideFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes slideMoveLeftOut {
   from { opacity: 1; transform: translate(0); }
   to   { opacity: 0; transform: translate(-100vw, 0vh); }
+}
+@keyframes slideMoveRightOut {
+  from { opacity: 1; transform: translate(0); }
+  to   { opacity: 0; transform: translate(100vw, 0vh); }
+}
+@keyframes slideMoveTopOut {
+  from { opacity: 1; transform: translate(0); }
+  to   { opacity: 0; transform: translate(0vw, 100vh); }
+}
+@keyframes slideMoveBottomOut {
+  from { opacity: 1; transform: translate(0); }
+  to   { opacity: 0; transform: translate(0vw, -100vh); }
+}
+@keyframes slideZoomOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0); }
+}
+@keyframes slideRotateOut {
+  from { opacity: 1; transform: rotate(0deg); }
+  to   { opacity: 0; transform: rotate(180deg); }
 }
 
 :root body {
@@ -122,6 +170,7 @@ body {
 	align-items: center;
 }
 .frame {
+	transform: rotate(0deg);
 	opacity: 1;
 	background-color: var(--bgcolor);
 	display: flex;
@@ -137,13 +186,72 @@ body {
 	overflow: hidden;
 }
 :root.presentation .frame {
+	transform: rotate(0deg); /*  very important, allows for good image placement with top: 0vh; in mediaoverlay */
   animation: slideFadeOut 0.3s ease forwards;
 	opacity: 0;
 }
 :root.presentation .frame.active {
+	transform: rotate(0deg); /*  very important, allows for good image placement with top: 0vh; in mediaoverlay */
   animation: slideFadeIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
+
+/* Out animations classes */
+:root.presentation .FadeOut {
+  animation: slideFadeOut 0.3s ease forwards;
+}
+:root.presentation .MoveRightOut {
+  animation: slideMoveRightOut 0.3s ease forwards;
+}
+:root.presentation .MoveLeftOut {
+  animation: slideMoveLeftOut 0.3s ease forwards;
+}
+:root.presentation .MoveTopOut {
+  animation: slideMoveTopOut 0.3s ease forwards;
+}
+:root.presentation .MoveBottomOut {
+  animation: slideMoveBottomOut 0.3s ease forwards;
+}
+:root.presentation .ZoomOut {
+  animation: slideZoomOut 0.3s ease forwards;
+}
+:root.presentation .RotateOut {
+  animation: slideRotateOut 0.3s ease forwards;
+}
+
+
+
+/* IN animations classes */
+:root.presentation .active.FadeIn {
+  animation: slideFadeIn 0.3s ease forwards;
+	animation-delay: 0.3s;
+}
+:root.presentation .active.MoveRightIn {
+  animation: slideMoveRightIn 0.3s ease forwards;
+	animation-delay: 0.3s;
+}
+:root.presentation .active.MoveLeftIn {
+  animation: slideMoveLeftIn 0.3s ease forwards;
+	animation-delay: 0.3s;
+}
+:root.presentation .active.MoveTopIn {
+  animation: slideMoveTopIn 0.3s ease forwards;
+	animation-delay: 0.3s;
+}
+:root.presentation .active.MoveBottomIn {
+  animation: slideMoveBottomIn 0.3s ease forwards;
+	animation-delay: 0.3s;
+}
+:root.presentation .active.ZoomIn {
+  animation: slideZoomIn 0.3s ease forwards;
+	animation-delay: 0.3s;
+}
+:root.presentation .active.RotateIn {
+  animation: slideRotateIn 0.3s ease forwards;
+	animation-delay: 0.3s;
+}
+
+
 .outline {
 	width: calc(90 * var(--unit_x));
 	height: calc(90 * var(--unit_y));
@@ -182,8 +290,8 @@ body {
 .frameContent {
 	display: flex;
 	flex-direction: column;
-	align-items: start !important;
-	justify-content: center !important;
+	align-items: start;
+	justify-content: center;
 	height: calc(74 * var(--unit_y));
 	padding-top: 3%;
 	padding-bottom: 3%;
@@ -245,8 +353,10 @@ body {
 	position: absolute;
 	width: calc(100*var(--unit_x));
 	height: calc(81*var(--unit_y));
-	left: calc( 50vw - 50*var(--unit_x) );
-	right: calc( 50vw - 50*var(--unit_x) );
+	left: 0;
+	right: 0;
+	top: 0vh;
+	margin-top: calc(19*var(--unit_y));
 	z-index: 0;
 	display: flex;
 	flex-direction: column;
@@ -257,11 +367,11 @@ body {
 .mediaoverlaySub {
 	position: absolute;
 	width: calc(100*var(--unit_x));
-	height: calc(74*var(--unit_y));
-	margin-top: calc( 50vh - 58*var(--unit_y) );
-	margin-bottom: calc( 50vh - 58*var(--unit_y) );
-	left: calc( 50vw - 50*var(--unit_x) );
-	right: calc( 50vw - 50*var(--unit_x) );
+	height: calc(75*var(--unit_y));
+	margin-top: calc(25*var(--unit_y) );
+	left: 0;
+	right: 0;
+	top: 0vh;
 	z-index: 0;
 	display: flex;
 	flex-direction: column;
@@ -287,8 +397,8 @@ div.border div {
 	padding: calc(1*var(--unit_x));
 }
 .position_right {
-	align-items: end;
-	justify-content: center;
+	align-items: end !important;
+	justify-content: center !important;
 }
 .position_left {
 	align-items: start;
