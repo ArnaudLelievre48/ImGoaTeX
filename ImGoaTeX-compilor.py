@@ -703,7 +703,7 @@ def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", co
 
 # takes the presentation data and generate the output file/files
 def write_output_html_file(presentation, css_variable, css_vaariable_fullscreen, folder, name="output.html", CSS_FILE_GENERATION=False):
-    PRESENTATION_FRAME = f"<div id='0'class='frame'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
+    PRESENTATION_FRAME = f"<div id='0'class='frame FadeIn FadeOut'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     OUTLINE_HTML_FRAME = ""
     for k in range(len(presentation.sections)):
@@ -724,6 +724,8 @@ def write_output_html_file(presentation, css_variable, css_vaariable_fullscreen,
                     classes += arg + " "
                 for arg in presentation.sections[k].subsections[l].frames[m].animations:
                     classes_animations += arg + " "
+                if classes_animations == "":
+                    classes_animations = "FadeIn FadeOut" #default animations
                 if presentation.sections[k].subsections[l].frames[m].subtitle is not None:
                     FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div>"
                 else:
@@ -740,7 +742,7 @@ def write_output_html_file(presentation, css_variable, css_vaariable_fullscreen,
                 FRAMES = FRAMES + FRAME_BODY
 
     OUTLINE_HTML_FRAME = f"<div>{OUTLINE_HTML_FRAME}</div>"
-    OUTLINE_HTML_FRAME = f"<div id='1' class='frame'><div class='outline'>{OUTLINE_HTML_FRAME}</div></div>"
+    OUTLINE_HTML_FRAME = f"<div id='1' class='frame FadeIn FadeOut'><div class='outline'>{OUTLINE_HTML_FRAME}</div></div>"
 
     body = PRESENTATION_FRAME + OUTLINE_HTML_FRAME + FRAMES
 

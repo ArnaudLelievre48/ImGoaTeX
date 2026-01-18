@@ -195,13 +195,10 @@ body {
 }
 :root.presentation .frame {
 	transform: rotate(0deg); /*  very important, allows for good image placement with top: 0vh; in mediaoverlay */
-  animation: slideFadeOut 0.3s ease forwards;
 	opacity: 0;
 }
 :root.presentation .frame.active {
 	transform: rotate(0deg); /*  very important, allows for good image placement with top: 0vh; in mediaoverlay */
-  animation: slideFadeIn 0.3s ease forwards;
-	animation-delay: 0.3s;
 }
 
 /* Out animations classes */
