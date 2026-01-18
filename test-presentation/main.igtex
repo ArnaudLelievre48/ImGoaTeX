@@ -18,11 +18,13 @@ Here I used a pause command to make a Beamer-like animation that simply copies a
 \section{tests of features}
 \subsection{medias}
 
-\begin{frame}{Video, with a size=1}[align=top-right]
+\begin{frame}{Video, with a size=1}[align=top-right]<MoveTopIn>
 \video{myvideo.mkv}[size=2, position=left-bottom, rotate= 45]
 some text, the align is top-right \\ the image is shifted to $20$ **y-paging units** to the top !
 \pause
 \image{ImGoaTeX.png}[size=3, shift = 20+0+0+0]
+\pause
+SOME MORE TEXT AGAIN
 \end{frame}
 
 
@@ -31,7 +33,7 @@ some text, the align is top-right \\ the image is shifted to $20$ **y-paging uni
 \textbox{some text inside the text box}[position=right-bottom, shift=5+0+0+20, border]
 \end{frame}
 
-\begin{frame}{images}{with a size=2, right-top, with a subtitle}
+\begin{frame}{images}{with a size=2, right-top, with a subtitle}<ZoomOut, FadeIn>
 \image{mygif.gif}[position=right-top, size=2]
 \image{mygif.gif}[position=bottom, size=3]
 some text, the image will be inline :
