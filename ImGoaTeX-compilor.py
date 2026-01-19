@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 import re
 from collections import namedtuple
 import datetime
@@ -11,7 +14,7 @@ import urllib.request
 
 time_compile = time.time()
 
-ABS_COMPILOR_PATH = os.path.dirname(os.path.abspath(__file__))+"/"
+ABS_COMPILOR_PATH = os.path.dirname(os.path.realpath(__file__))+"/"
 
 Token = namedtuple("Token", ["type", "value", "line"])
 
