@@ -203,7 +203,7 @@ body {
 
 /* Out animations classes */
 :root.presentation .NoneOut {
-  animation: slideNoneOut 0.05s ease forwards;
+  animation: slideNoneOut 0.001s ease forwards;
 }
 :root.presentation .FadeOut {
   animation: slideFadeOut 0.3s ease forwards;
@@ -228,15 +228,9 @@ body {
 }
 
 /* IN animations classes */
-:root.presentation .active .NoneIn {
-  animation: none !important;
-  animation: slideNoneIn 0.05s ease forwards !important;
-	animation-delay: 0.0 !important;
-}
-:root.presentation .NoneIn {
-  animation: none !important;
-  animation: slideNoneIn 0.05s ease forwards !important;
-	animation-delay: 0.0 !important;
+:root.presentation .active.NoneIn {
+  animation: slideNoneIn 0.001s ease forwards;
+	animation-delay: 0.001s;
 }
 :root.presentation .active.FadeIn {
   animation: slideFadeIn 0.3s ease forwards;

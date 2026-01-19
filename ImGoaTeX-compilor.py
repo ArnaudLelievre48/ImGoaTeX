@@ -53,11 +53,17 @@ def tokenize_expression(expression, line_number):
                 return Token("META", (key.strip(), val.strip()), line_number), rest_expression
 
             elif typ == "BEGIN_FRAME":
-                frame_title, frame_subtitle, frame_options, frame_animations = matching.groups()
+                frame_title, frame_subtitle, frame_options, frame_animations_list = matching.groups()
+                frame_animations = ["FadeIn", "FadeOut"]
                 if frame_options is not None:
                     frame_options = frame_options.split(",")
-                if frame_animations is not None:
-                    frame_animations = frame_animations.split(",")
+                if frame_animations_list is not None:
+                    frame_animations_list = frame_animations_list.split(",")
+                    for animation in frame_animations_list:
+                        if animation.endswith("In"):
+                            frame_animations[0] = animation
+                        if animation.endswith("Out"):
+                            frame_animations[1] = animation
                 if matching.groups():
                     if len(matching.groups()) > 4:
                         print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you gave too much argument to the frame '{frame_title}', it only takes 2, a title and a subtitle plus optional options and animations")
@@ -69,11 +75,15 @@ def tokenize_expression(expression, line_number):
                     sys.exit(1)
 
             elif typ == "PAUSE":
-                pause_animations = matching.groups()[0]
-                if pause_animations is not None:
-                    pause_animations = pause_animations.split(",")
-                else:
-                    pause_animations =  ["NoneOut"]
+                pause_animations_list = matching.groups()[0]
+                pause_animations =  ["NoneIn", "NoneOut"]
+                if pause_animations_list is not None:
+                    pause_animations_list = pause_animations_list.split(",")
+                    for animation in pause_animations_list:
+                        if animation.endswith("In"):
+                            pause_animations[0] = animation
+                        if animation.endswith("Out"):
+                            pause_animations[1] = animation
                 return Token(typ, pause_animations, line_number), rest_expression
 
 
@@ -179,7 +189,7 @@ class Frame:
         else:
             self.options = copy.deepcopy(options)
         if animations is None:
-            self.animations = []
+            self.animations = ["FadeIn","FadeOut"]
         else:
             self.animations = copy.deepcopy(animations)
         if contents is None:
@@ -297,10 +307,11 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
     if token.type == "PAUSE":
         if current_frame is not None:
             pause_animations = token.value
-            if pause_animations == ["NoneOut"]:
-                pause_animations = pause_animations + current_frame.animations
-                current_frame.animations.append("NoneIn")
-            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents, current_frame.options, pause_animations ) )
+            animation_in, animation_out = current_frame.animations
+            animations = [animation_in, pause_animations[1]]
+            animations_next = [pause_animations[0], animation_out]
+            presentation.sections[-1].subsections[-1].frames[-1] = ( Frame(current_frame.title, current_frame.subtitle, current_frame.contents, current_frame.options, animations) )
+            current_frame.animations  = animations_next
             presentation.sections[-1].subsections[-1].frames.append( current_frame  )
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")
@@ -329,7 +340,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
     if token.type == "TEXT":
         if current_frame:
-            current_frame.contents.append( parse_text_to_html( token.value ) )
+            current_frame.contents.append( parse_text_to_html( token.value, CSSVARS[7] ) )
             #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
@@ -639,7 +650,7 @@ def split_outside_math(text):
 
 
 # parse text in html format
-def parse_text_to_html(text, fontsize=1):
+def parse_text_to_html(text, fontsize=1.2):
     #parts = re.split(r'(\\\\|\\n|\$)', text)
     #parts = re.split(r'(?:\\\\|\n)(?=(?:[^$]*\$[^$]*\$)*[^$]*$)', text)
     parts = split_outside_math(text)
@@ -657,7 +668,7 @@ def parse_text_to_html(text, fontsize=1):
     outText = ''
     for part in parts:
         if part not in bad:
-            outText = outText + f"<p style='font-size: calc({fontsize}*var(--unit_x))'>{part}</p>"
+            outText = outText + f"<p style='font-size: calc({fontsize}*var(--unit_x)) !important'>{part}</p>"
         else:
             outText = outText + "<span style='height: calc(1* var(--unit_y))'></span>"
 
@@ -724,8 +735,6 @@ def write_output_html_file(presentation, css_variable, css_vaariable_fullscreen,
                     classes += arg + " "
                 for arg in presentation.sections[k].subsections[l].frames[m].animations:
                     classes_animations += arg + " "
-                if classes_animations == "":
-                    classes_animations = "FadeIn FadeOut" #default animations
                 if presentation.sections[k].subsections[l].frames[m].subtitle is not None:
                     FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div>"
                 else:

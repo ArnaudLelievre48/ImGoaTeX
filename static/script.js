@@ -61,11 +61,12 @@ const goToSlide = async (n) => {
 
   if (presentationMode) {
     console.log(n);
-    updateActiveSlide(n);
+    await updateActiveSlide(n);
     if (!document.getElementById(currentSlide).classList.contains("NoneOut")) {
       console.log("HERE WAIT");
       await sleep(300);
     } else {
+      await sleep(1);
       console.log("NOT WAIT");
     }
     slide.scrollIntoView({ behavior: "instant", block: "center" });
