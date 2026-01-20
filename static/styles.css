@@ -335,12 +335,6 @@ body {
 .subitem p {
 	font-size: calc(1.1*var(--basefontsize)) !important;
 }
-.subsubitem {
-	margin-left: calc(7 * var(--unit_x) );
-}
-.subsubitem p {
-	font-size: calc(1*var(--basefontsize)) !important;
-}
 
 
 

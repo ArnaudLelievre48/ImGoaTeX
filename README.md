@@ -20,7 +20,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-- Recommanded : add `ImGoaTeX-compilor.py` to your `PATH` :
+- Recommanded : add `ImGoaTeX-compilor.py` to your `PATH` (on Linux):
 ```
 chmod +x ImGoaTeX-compilor.py
 touch ~/.local/bin/igtexc
@@ -33,7 +33,7 @@ sudo ln -s /absolute/path/to/ImGoaTeX/compilor.py /usr/local/bin/igtexc
 If you aded the compilor to your PATH, you may directly use these commands, otherwise run something like `python3 [abspath-to-ImGoaTeX.py] [file].igtex` instead of `igtexc [file].igtex`.
 
 - Create a presentation file such as `main.igtex` and an empty directory `medias`
-- You may add you pieces of medias in the `medias` folder
+- You may add your pieces of media (video, images...) in the `medias` folder
 - Write your presentation. Here is a presentation example :
 ```
 %title: Simple ImGoaTeX presentation example

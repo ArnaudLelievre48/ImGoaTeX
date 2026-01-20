@@ -35,7 +35,7 @@ TOKEN_PATTERNS = [
     (r'^\\iframe\{([^}]*)\}(?:\[([^\]]*)\])?', "IFRAME"),
     (r'^\\textbox\{((?:\$[^$]*\$|[^}])*)\}(?:\[([^\]]*)\])?', "TEXTBOX"),
     (r'\\item\{((?:\$[^$]*\$|[^}])*)\}', "ITEM"),
-    (r'\\subitem\{((?:\$[^$]*\$|[^}])*)\}', "SUBSUBITEM"),
+    (r'\\subitem\{((?:\$[^$]*\$|[^}])*)\}', "SUBITEM"),
     (r'^#\.*', "COMMENT"),
     (r'^\\pause(?:\<([^\]]*)\>)?', "PAUSE"),
 ]
@@ -128,12 +128,6 @@ def tokenize_expression(expression, line_number):
                 if matching.group(1):
                     token_inside, _ = tokenize_expression("○ " + matching.group(1), line_number)
                 return ( Token(typ, token_inside, line_number) ), rest_expression
-
-            elif typ == "SUBSUBITEM":
-                if matching.group(1):
-                    token_inside, _ = tokenize_expression("◌ " + matching.group(1), line_number)
-                return ( Token(typ, token_inside, line_number) ), rest_expression
-
 
             else:
                 if matching.groups():
@@ -332,14 +326,6 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             current_frame.contents.append( "<div class='subitem'>" )
             current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame, folder)
             current_frame.contents.append( "</div>" )
-
-    if token.type == "SUBSUBITEM":
-        inside_token = token.value
-        if current_frame:
-            current_frame.contents.append( "<div class='subsubitem'>" )
-            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame, folder)
-            current_frame.contents.append( "</div>" )
-
 
     if token.type == "TEXT":
         if current_frame:

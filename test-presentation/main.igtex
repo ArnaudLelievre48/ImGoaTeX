@@ -66,7 +66,6 @@ here is some text that is written after the image
 *** test en italic + bold *** \textit{test en italic}, \textbf{\textit{test en bold + italic}}, tests combinés de textbf, textit et des etoiles
 \item{**test**}
 \subitem{sous-tiret}
-\subsubitem{sous-sous-tiret}
 \end{frame}
 
 \subsection{tests des equation}
