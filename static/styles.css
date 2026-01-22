@@ -167,7 +167,7 @@ h3 {
 	color: var(--color3)
 }
 p {
-	font-size: calc(1*var(--basefontsize)) !important;
+	font-size: calc(1*var(--basefontsize));
 	color: var(--color4);
 	z-index: 999;
 }
@@ -301,7 +301,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	align-items: start;
-	justify-content: center;
+	justify-content: start;
 	height: calc(74 * var(--unit_y));
 	padding-top: 3%;
 	padding-bottom: 3%;
@@ -314,7 +314,7 @@ body {
 	display: flex;
 	flex-direction: column;
 	align-items: start !important;
-	justify-content: center !important;
+	justify-content: start !important;
 	height: calc(68 * var(--unit_y));
 	padding-top: 3%;
 	padding-bottom: 3%;
@@ -333,7 +333,7 @@ body {
 	margin-left: calc( 4 * var(--unit_x) );
 }
 .subitem p {
-	font-size: calc(1.1*var(--basefontsize)) !important;
+	font-size: calc(0.8*var(--basefontsize)) !important;
 }
 
 

@@ -329,7 +329,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
 
     if token.type == "TEXT":
         if current_frame:
-            current_frame.contents.append( parse_text_to_html( token.value, CSSVARS[7] ) )
+            current_frame.contents.append( parse_text_to_html( token.value, 1 ) )
             #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
         else:
             print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
@@ -639,7 +639,7 @@ def split_outside_math(text):
 
 
 # parse text in html format
-def parse_text_to_html(text, fontsize=1.2):
+def parse_text_to_html(text, fontsize):
     #parts = re.split(r'(\\\\|\\n|\$)', text)
     #parts = re.split(r'(?:\\\\|\n)(?=(?:[^$]*\$[^$]*\$)*[^$]*$)', text)
     parts = split_outside_math(text)
@@ -657,14 +657,14 @@ def parse_text_to_html(text, fontsize=1.2):
     outText = ''
     for part in parts:
         if part not in bad:
-            outText = outText + f"<p style='font-size: calc({fontsize}*var(--unit_x)) !important'>{part}</p>"
+            outText = outText + f"<p style='font-size: calc({fontsize}*var(--basefontsize))'>{part}</p>"
         else:
             outText = outText + "<span style='height: calc(1* var(--unit_y))'></span>"
 
     return(outText)
 
 
-def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.2):
+def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.5):
     var = f"""
         --ar_width: {as_w};
         --ar_height: {as_h};
@@ -681,7 +681,7 @@ def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a
     css_root = ":root {\n" + var + "}"
     return css_root
 
-def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.2):
+def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.5):
     var = f"""
         --ar_width: {as_w};
         --ar_height: {as_h};
@@ -785,7 +785,7 @@ if __name__ == "__main__" :
         "#783a1f", #color2
         "#ad5e3b", #color3
         "#362821", #color4
-        1.2, #basefontsize
+        1.5, #basefontsize
     ]
 
     if args.filename:
