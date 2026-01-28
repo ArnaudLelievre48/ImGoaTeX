@@ -453,6 +453,10 @@ div.border div {
 	justify-content: center;
 }
 
+.codewrapper {
+  padding: calc(0.2 * var(--unit_x));
+  background-color: #00000010;
+}
 
 .size_1 {
 	width: min(90%, calc(60*var(--unit_x))) !important;

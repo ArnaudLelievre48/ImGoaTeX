@@ -11,6 +11,8 @@ import base64
 import os, sys, copy
 import time
 import urllib.request
+import textwrap
+import html
 
 time_compile = time.time()
 
@@ -30,9 +32,13 @@ TOKEN_PATTERNS = [
     (r'^\\subsection\{(.+?)\}', "SUBSECTION"),
     (r'\\begin\{frame\}\{([^}]*)\}(?:\{([^}]*)\})?(?:\[([^\]]*)\])?(?:\<([^\]]*)\>)?', "BEGIN_FRAME"),
     (r'^\\end\{frame\}', "END_FRAME"),
+    (r'\\begin\{code\}\{([^}]*)\}(?:\[([^\]]*)\])?', "BEGIN_CODE"),
+    (r'^\\end\{code\}', "END_CODE"),
     (r'^\\video\{([^}]*)\}(?:\[([^\]]*)\])?', "VIDEO"),
     (r'^\\image\{([^}]*)\}(?:\[([^\]]*)\])?', "IMAGE"),
     (r'^\\iframe\{([^}]*)\}(?:\[([^\]]*)\])?', "IFRAME"),
+    (r'^\\codeblock\{([^}]*)\}(?:\[([^\]]*)\])?', "CODEBLOCK"),
+    (r'^\\codeline\{([^}]*)\}(?:\[([^\]]*)\])?', "CODELINE"),
     (r'^\\textbox\{((?:\$[^$]*\$|[^}])*)\}(?:\[([^\]]*)\])?', "TEXTBOX"),
     (r'\\item\{((?:\$[^$]*\$|[^}])*)\}', "ITEM"),
     (r'\\subitem\{((?:\$[^$]*\$|[^}])*)\}', "SUBITEM"),
@@ -77,6 +83,23 @@ def tokenize_expression(expression, line_number):
                     print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you did not give any argument to the frame '{frame_title}', it takes up to 2 arguments, a title, optional subtitle plus optional options")
                     sys.exit(1)
 
+            elif typ == "BEGIN_CODE":
+                code_language, code_options = matching.groups()
+                if code_options is not None:
+                    code_options = code_options.split(",")
+                if matching.groups():
+                    if len(matching.groups()) > 2:
+                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you gave too much argument to the code block, it only takes 1, programming language, plus optional options")
+                        sys.exit(1)
+                    else:
+                        return Token(typ, (code_language, code_options), line_number), rest_expression
+                else:
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n you did not give any argument to the code block,  it only takes 1, programming language, plus optional options")
+                    sys.exit(1)
+
+
+
+
             elif typ == "PAUSE":
                 pause_animations_list = matching.groups()[0]
                 pause_animations =  ["NoneIn", "NoneOut"]
@@ -110,6 +133,23 @@ def tokenize_expression(expression, line_number):
                     return Token(typ, tuple([website_source, args_web]), line_number ), rest_expression
                 else:
                     return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
+
+            elif typ == "CODEBLOCK":
+                if matching.groups()[1]:
+                    codefile, args_code = matching.group(1), matching.group(2).split(",")
+                    return Token(typ, tuple([codefile, args_code]), line_number ), rest_expression
+                else:
+                    return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
+
+
+
+            elif typ == "CODELINE":
+                if matching.groups()[1]:
+                    code_file, language = matching.group(1), matching.group(2)
+                    return Token(typ, tuple([code_file, language]), line_number ), rest_expression
+                else:
+                    return Token(typ, tuple([matching.group(1), None]), line_number), rest_expression
+
 
 
             elif typ == "TEXTBOX":
@@ -514,7 +554,84 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder)
             except:
                 current_frame.contents.append( f"<div class='{iframeclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an image to a frame")
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            sys.exit(1)
+
+    if token.type == "CODEBLOCK":
+        if current_frame:
+            codeblockclass = "mediaoverlay"
+            if current_frame.subtitle is not None:
+                codeblockclass = "mediaoverlaySub"
+            inline = False
+
+            try:
+                with open(folder+"medias/"+token.value[0], 'rb') as codefile:
+                    code_raw = codefile.read()
+                    code_utf8= code_raw.decode("utf-8")
+                    code_text = textwrap.dedent(code_utf8)
+                    code = html.escape(code_text)
+                    classes = ""
+                    classes_pos = ""
+                    shift_top = "0px"
+                    shift_right = "0px"
+                    shift_bottom = "0px"
+                    shift_left = "0px"
+                    degre="0deg"
+                    # treat options
+                    if token.value[1] is not None:
+                        for arg in token.value[1]:
+                            arg = arg.replace(" ", "")
+                            arg = arg.replace("=", "_")
+                            if arg == "inline":
+                                inline = True
+                            if arg[:8] == "position":
+                                classes_pos = classes_pos + arg + " "
+                            if arg[:6] == "rotate":
+                                try:
+                                    degre = f"{ str(float(arg.split('_')[1])) }deg"
+                                except:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    sys.exit(1)
+                            if arg[:5] == "shift":
+                                arg = arg.split("_")[1]
+                                if len(arg.split('+')) != 4:
+                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    sys.exit(1)
+
+                                shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
+                                shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
+                                shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
+                                shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+                            else:
+                                classes = classes + arg + " "
+
+                    if inline:
+                        codeblock_html = f"<div style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='wrapper {classes}' overflow='scroll'><div class='codewrapper'><pre><code>{code}</code></pre></div></div>"
+                    else:
+                        codeblock_html = f"<div class='{codeblockclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div class='codewrapper'><pre><code>{ code }</code></pre></div></div></div>"
+
+                current_frame.contents.append( codeblock_html )
+            except:
+                current_frame.contents.append( f"<div class='{codeblockclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
+        else:
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            sys.exit(1)
+
+
+
+    if token.type == "CODELINE":
+        if current_frame:
+            codelineclass = "mediaoverlay"
+            if current_frame.subtitle is not None:
+                codelineclass = "mediaoverlaySub"
+            try:
+                codeline_html = f"<div class='codeline' overflow='scroll'><div class='codewrapper'><pre><code class='{token.value[1]}'>{textwrap.dedent(token.value[0])}</code></pre></div></div>"
+
+                current_frame.contents.append( codeline_html )
+            except:
+                current_frame.contents.append( f"<div class='{codelineclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
+        else:
+            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an codeline to a frame")
             sys.exit(1)
 
 
