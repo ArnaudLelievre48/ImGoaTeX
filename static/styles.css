@@ -467,7 +467,10 @@ div.border div {
 
 .codewrapper {
   padding: calc(0.2 * var(--unit_x));
-  background-color: #00000010;
+  background-color: #000000DD;
+  border-radius: 0.5em;
+  padding: calc(0.5*var(--unit_x));
+  font-size: calc(0.5*var(--basefontsize));
 }
 
 .size_1 {

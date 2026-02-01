@@ -384,10 +384,13 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     shift_left = "0px"
                     degre="0deg"
                     # treat options
+                    language = ""
                     if token.value[1] is not None:
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
+                            if arg.startswith("language"):
+                                language = arg.replace("_","-")
                             if arg == "inline":
                                 inline = True
                             if arg[:8] == "position":
@@ -412,9 +415,9 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 classes = classes + arg + " "
 
                     if inline:
-                        codeblock_html = f"<div style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='wrapper {classes}' overflow='scroll'><div class='codewrapper'><pre><code class='language-python'>{code}</code></pre></div></div>"
+                        codeblock_html = f"<div style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='wrapper {classes}' overflow='scroll'><div class='codewrapper'><pre><code class='{language}'>{code}</code></pre></div></div>"
                     else:
-                        codeblock_html = f"<div class='{codeblockclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div class='codewrapper'><pre><code class='language-python'>{ code }</code></pre></div></div></div>"
+                        codeblock_html = f"<div class='{codeblockclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div class='codewrapper'><pre><code class='{language}'>{ code }</code></pre></div></div></div>"
 
                 current_frame.contents.append( codeblock_html )
             except:
@@ -431,7 +434,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             if current_frame.subtitle is not None:
                 codelineclass = "mediaoverlaySub"
             try:
-                codeline_html = f"<div class='codeline' overflow='scroll'><div class='codewrapper'><pre><code class='language-python' class='{token.value[1]}'>{textwrap.dedent(token.value[0])}</code></pre></div></div>"
+                codeline_html = f"<div class='codeline' overflow='scroll'><div class='codewrapper'><pre><code class='{token.value[1].replace("=","-")}'>{textwrap.dedent(token.value[0])}</code></pre></div></div>"
                 current_frame.contents.append( codeline_html )
             except:
                 current_frame.contents.append( f"<div class='{codelineclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )

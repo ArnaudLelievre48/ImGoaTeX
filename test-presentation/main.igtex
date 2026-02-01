@@ -81,7 +81,7 @@ Intégrale gaussienne double signe dollard : $$\int_{-\infty}^{+\infty} e^{-x^2}
 
 \begin{frame}{test codeblock}
 
-\codeline{ dictionnary = [i for i in range(10)] }[python]
-\codeblock{code.py}[language-python, position=right, size=2, shift=0+0+0+20]
+\codeline{ dictionnary = [i for i in range(10)] }[language=python]
+\codeblock{code.py}[position=right, size=2, shift=0+0+0+20]
 
 \end{frame}
