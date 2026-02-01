@@ -56,11 +56,8 @@ def parse(tokens, folder, CSSVARS, PORTABLE_MEDIAS=True):
 def write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder, name="output.html", CSS_FILE_GENERATION=False, SECTIONS=True, OUTLINE=True):
     PRESENTATION_FRAME = f"<div id='0'class='frame FadeIn FadeOut'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
-    OUTLINE_HTML_FRAME = ""
-    for k in range(len(presentation.sections)):
-        OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h2>{k+1} ) {presentation.sections[k].title}</h2>\n"
-        for l in range(len(presentation.sections[k].subsections)):
-            OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h3 style='margin-left:5vw'>{k+1}.{l+1} ) {presentation.sections[k].subsections[l].title}</h3>\n"
+    INDEXES = {}
+
 
     FRAMES = ""
     if OUTLINE:
@@ -75,8 +72,10 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
                 SUBSECTIONS_HTML = SUBSECTIONS_HTML + f"<h3>● {subsection.title}</h3>"
             SECTION_FRAME = f"<div id='{frame_number}' class='frame ZoomIn RotateOut'><h1 style='padding-top: calc(10*var(--uniit_y))'>{presentation.sections[k].title}</h1><div class='subsectionsOfSection'>{SUBSECTIONS_HTML}</div></div>"
             FRAMES = FRAMES + SECTION_FRAME
+            INDEXES[(k,-1)] = frame_number
             frame_number += 1
         for l in range(len(presentation.sections[k].subsections)):
+            INDEXES[(k,l)] = frame_number
             for m in range(len(presentation.sections[k].subsections[l].frames)):
                 classes = ""
                 classes_animations = ""
@@ -100,6 +99,13 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
                 FRAME_BODY = f"<div id='{frame_number}' class='frame {classes_animations}'>{FRAME_BODY}</div>"
                 frame_number+=1
                 FRAMES = FRAMES + FRAME_BODY
+
+
+    OUTLINE_HTML_FRAME = ""
+    for k in range(len(presentation.sections)):
+        OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h2 onclick='goToSlide({INDEXES[(k,-1)]})'>{k+1} ) {presentation.sections[k].title}</h2>\n"
+        for l in range(len(presentation.sections[k].subsections)):
+            OUTLINE_HTML_FRAME = OUTLINE_HTML_FRAME + f"<h3 onclick='goToSlide({INDEXES[(k,l)]})' style='margin-left:5vw'>{k+1}.{l+1} ) {presentation.sections[k].subsections[l].title}</h3>\n"
 
     if OUTLINE:
         OUTLINE_HTML_FRAME = f"<div id='1' class='frame FadeIn FadeOut'><div class='outline'><div>{OUTLINE_HTML_FRAME}</div></div></div>"
