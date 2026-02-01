@@ -25,7 +25,7 @@ chmod +x install.sh
 chmod +x ImGoaTeX-compilor.py
 touch ~/.local/bin/igtexc
 mkdir -p ~/.local/bin
-sudo ln -s /absolute/path/to/ImGoaTeX/compilor.py /usr/local/bin/igtexc
+sudo ln -s [/absolute/path/to/ImGoaTeX]/ImGoaTeX-compilor.py /usr/local/bin/igtexc
 ```
 
 # First use
