@@ -3,6 +3,8 @@ import copy
 import urllib.request
 import sys
 import base64
+import textwrap
+import html
 
 import formatingFunctions
 
@@ -430,7 +432,6 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                 codelineclass = "mediaoverlaySub"
             try:
                 codeline_html = f"<div class='codeline' overflow='scroll'><div class='codewrapper'><pre><code class='language-python' class='{token.value[1]}'>{textwrap.dedent(token.value[0])}</code></pre></div></div>"
-
                 current_frame.contents.append( codeline_html )
             except:
                 current_frame.contents.append( f"<div class='{codelineclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )

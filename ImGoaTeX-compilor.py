@@ -7,8 +7,6 @@ import argparse
 from pathlib import Path
 import os, sys
 import time
-import textwrap
-import html
 
 import formatingFunctions
 import lexer
@@ -131,9 +129,9 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
 
     try:
         with open(ABS_COMPILOR_PATH + "highlights/highlight.min.js", 'r') as highlight_min_js_file:
-            highlight_min_js = f"<style>{highlight_min_js_file.read()}</style>"
+            highlight_min_js = f"<script>{highlight_min_js_file.read()}</script>"
         with open(ABS_COMPILOR_PATH + "highlights/atom-one-dark.css", 'r') as atom_one_dark_file:
-            atom_one_dark_css = f"<script>{atom_one_dark_file.read()}</script>"
+            atom_one_dark_css = f"<style>{atom_one_dark_file.read()}</style>" + "<style>.hljs {background: transparent !important;}</style>"
     except:
         print("HighlightsJS files not found, please run `install.sh`")
         sys.exit(1)
