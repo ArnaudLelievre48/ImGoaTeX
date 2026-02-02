@@ -62,8 +62,6 @@ here is some text that is written after the image
 
 \begin{frame}{tests du texte}
 *Test*, italic avec les etoiles \\ test du double backslash \n test du backsash n
-\textbf{test en gras cette fois}, avec textbf \\ **text en gras encore**, avec les etoiles
-*** test en italic + bold *** \textit{test en italic}, \textbf{\textit{test en bold + italic}}, tests combinés de textbf, textit et des etoiles
 \item{**test**}
 \subitem{sous-tiret}
 \end{frame}

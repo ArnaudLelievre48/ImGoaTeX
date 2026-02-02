@@ -30,13 +30,13 @@ def tokenize_lines(lines):
         if not line:
             continue
         else:
-            token, rest_expression = lexer.tokenize_expression(line, line_number)
+            token, after_expression = lexer.tokenize_expression(line, line_number)
             if token != None:
                 tokens.append(token)
             else:
                 continue
-            while rest_expression != "":
-                token, rest_expression = lexer.tokenize_expression(rest_expression.lstrip(" "), line_number)
+            while after_expression.lstrip(" ") != "":
+                token, after_expression = lexer.tokenize_expression(after_expression.lstrip(" "), line_number)
                 tokens.append(token)
     return(tokens)
 
