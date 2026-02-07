@@ -57,7 +57,18 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
     PRESENTATION_FRAME = f"<div id='0'class='frame FadeIn FadeOut'><h1>{presentation.title}</h1><h2>{presentation.subtitle}</h2><h3>author : {presentation.author}</h3><h3>date : {presentation.date}</h3></div>"
 
     INDEXES = {}
+    if OUTLINE:
+        frame_number_indexing = 2
+    else:
+        frame_number_indexing = 1
 
+    for k in range(len(presentation.sections)):
+        INDEXES[(k,-1)] = frame_number_indexing
+        if SECTIONS:
+            frame_number_indexing += 1
+        for l in range(len(presentation.sections[k].subsections)):
+            INDEXES[(k,l)] = frame_number_indexing
+            frame_number_indexing += len(presentation.sections[k].subsections[l].frames)
 
     FRAMES = ""
     if OUTLINE:
@@ -68,14 +79,12 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
     for k in range(len(presentation.sections)):
         if SECTIONS:
             SUBSECTIONS_HTML = ""
-            for subsection in presentation.sections[k].subsections:
-                SUBSECTIONS_HTML = SUBSECTIONS_HTML + f"<h3>● {subsection.title}</h3>"
+            for l in range(len(presentation.sections[k].subsections)):
+                SUBSECTIONS_HTML = SUBSECTIONS_HTML + f"<h3 onclick='goToSlide({INDEXES[(k,l)]})'>● {presentation.sections[k].subsections[l].title}</h3>"
             SECTION_FRAME = f"<div id='{frame_number}' class='frame ZoomIn RotateOut'><h1 style='padding-top: calc(10*var(--uniit_y))'>{presentation.sections[k].title}</h1><div class='subsectionsOfSection'>{SUBSECTIONS_HTML}</div></div>"
             FRAMES = FRAMES + SECTION_FRAME
-            INDEXES[(k,-1)] = frame_number
             frame_number += 1
         for l in range(len(presentation.sections[k].subsections)):
-            INDEXES[(k,l)] = frame_number
             for m in range(len(presentation.sections[k].subsections[l].frames)):
                 classes = ""
                 classes_animations = ""
@@ -144,9 +153,9 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
 
     with open(folder+name, "w+") as outfile:
         if CSS_FILE_GENERATION:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js}<script>hljs.highlightAll();</script><style>{css_variable}</style><style>{css_variable_fullscreen}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js}<script>hljs.highlightAll();</script><style>{css_variable}</style><style>{css_variable_fullscreen}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div>"{body}</body>{javascript}</html>""")
         else:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js} <script>hljs.highlightAll();</script> <style>{css_variable}</style> <style>{css_variable_fullscreen}</style> <style>{style_code}</style> <meta charset="UTF-8"><title>{presentation.title}</title></head> <body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js} <script>hljs.highlightAll();</script> <style>{css_variable}</style> <style>{css_variable_fullscreen}</style> <style>{style_code}</style> <meta charset="UTF-8"><title>{presentation.title}</title></head> <body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div>{body}</body>{javascript}</html>""")
 
 
 

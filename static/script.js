@@ -4,9 +4,14 @@ let count = document.querySelectorAll('.frame').length;
 console.log(count)
 const slideInput = document.getElementById("slideNumber");
 const fullscreenBtn = document.getElementById("fullscreen");
+const loadingMarker = document.getElementById("loading");
 let presentationMode = false;
 let scrollLocked = false;
 const SCROLL_DELAY = 300;
+
+loadingMarker.classList.remove("loading");
+loadingMarker.classList.add("loading-done");
+
 
 fullscreenBtn?.addEventListener("click", toggleFullscreen);
 

@@ -1,0 +1,16 @@
+%title: My Presentation
+%subtitle: My Presentation : a test actually
+%author: Arnaud Lelièvre
+# basefontsize 1.2 is the default fontsize
+# %basefontsize: 1.2
+
+# here is a comment : this line is discarded from the compiler
+
+\section{Intro}
+\subsection{some frames}
+
+\begin{frame}{Welcome}[align=bottom]<ZoomIn, RotateOut>
+Hello, welcome to coding in **ImGoaTeX**!
+\pause<MoveRightIn, ZoomOut>
+Here I used a pause command to make a Beamer-like animation that simply copies a frame \\ Have fun using **ImGoaTex** !
+\end{frame}

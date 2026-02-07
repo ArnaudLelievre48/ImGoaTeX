@@ -148,6 +148,29 @@
 	width: 2.25vw;
 	box-shadow: 4pt 2pt 5pt #00000060;
 }
+#loading {
+	transition: all ease-in-out 0.4s;
+  margin-top: 10vh;
+  width: 20vw;
+  height: 10vh;
+  background: rgba(0, 0, 0, 0.05);
+  color: white;
+  z-index: 999999;  /* HIGH to be above all other elements */
+  display: flex;
+	flex-direction: column;
+  align-items: center;
+  justify-content: center;
+	border-radius: 10pt;
+	box-shadow: 5pt 4pt 5pt #00000020;
+}
+. loading-text {
+	font-size: calc(1.5*var(--basefontsize)) !important;
+	color: var(--color3)
+}
+. loading-done {
+  width: 0vw;
+  height: 0vh;
+}
 #fullscreen {
 	margin-top: 10vh;
 }
@@ -471,6 +494,7 @@ div.border div {
   border-radius: 0.5em;
   padding: calc(0.5*var(--unit_x));
   font-size: calc(0.5*var(--basefontsize));
+  text-align: left;
 }
 
 .size_1 {
