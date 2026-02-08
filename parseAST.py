@@ -73,7 +73,7 @@ class Video:
 
 
 # treat a token and how it is added to the presentation. The function returns current_frame, which is - so far - all that is necessary - besides presetation - to describe the state of the presentation being build 
-def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder, CSSVARS):
+def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder, CSSVARS, lines):
     if token.type == "META":
         key, val = token.value
         if key == "title":
@@ -163,14 +163,14 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
         inside_token = token.value
         if current_frame:
             current_frame.contents.append( "<div class='item'>" )
-            current_frame = parse_filtering(inside_token, presentation, PORTABLE_MEDIAS, current_frame, folder, CSSVARS)
+            current_frame = parse_filtering(inside_token, presentation, PORTABLE_MEDIAS, current_frame, folder, CSSVARS, lines)
             current_frame.contents.append( "</div>" )
 
     if token.type == "SUBITEM":
         inside_token = token.value
         if current_frame:
             current_frame.contents.append( "<div class='subitem'>" )
-            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame, folder, CSSVARS)
+            current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame, folder, CSSVARS, lines)
             current_frame.contents.append( "</div>" )
 
     if token.type == "TEXT":

@@ -33,7 +33,7 @@ TOKEN_PATTERNS = [
 ]
 
 # tokenization
-def tokenize_expression(expression, line_number):
+def tokenize_expression(expression, line_number, lines):
     for pattern, typ in TOKEN_PATTERNS:
         matching = re.match(pattern, expression)
         if matching is not None: # if a certain pattern has been recognized, then it's not plain text -> we treat it
@@ -138,12 +138,12 @@ def tokenize_expression(expression, line_number):
 
             elif typ == "ITEM":
                 if matching.group(1):
-                    token_inside, _ = tokenize_expression("● " + matching.group(1), line_number)
+                    token_inside, _ = tokenize_expression("● " + matching.group(1), line_number, lines)
                 return ( Token(typ, token_inside, line_number) ), after_expression
 
             elif typ == "SUBITEM":
                 if matching.group(1):
-                    token_inside, _ = tokenize_expression("○ " + matching.group(1), line_number)
+                    token_inside, _ = tokenize_expression("○ " + matching.group(1), line_number, lines)
                 return ( Token(typ, token_inside, line_number) ), after_expression
 
             else:

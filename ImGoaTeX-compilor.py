@@ -30,24 +30,24 @@ def tokenize_lines(lines):
         if not line:
             continue
         else:
-            token, after_expression = lexer.tokenize_expression(line, line_number)
+            token, after_expression = lexer.tokenize_expression(line, line_number, lines)
             if token != None:
                 tokens.append(token)
             else:
                 continue
             while after_expression.lstrip(" ") != "":
-                token, after_expression = lexer.tokenize_expression(after_expression.lstrip(" "), line_number)
+                token, after_expression = lexer.tokenize_expression(after_expression.lstrip(" "), line_number, lines)
                 tokens.append(token)
     return(tokens)
 
 
 
 # creates the presentation object (AST) from the tokens
-def parse(tokens, folder, CSSVARS, PORTABLE_MEDIAS=True):
+def parse(tokens, folder, lines, CSSVARS, PORTABLE_MEDIAS=True):
     presentation = parseAST.Presentation()
     current_frame = None
     for token in tokens:
-        current_frame = parseAST.parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame ,folder, CSSVARS)
+        current_frame = parseAST.parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame ,folder, CSSVARS, lines)
     return(presentation)
 
 
@@ -190,7 +190,7 @@ if __name__ == "__main__" :
     with open(file, 'r') as igtexFile:
         lines = igtexFile.readlines()
         tokens = tokenize_lines(lines)
-        presentation = parse(tokens, folder, CSSVARS)
+        presentation = parse(tokens, folder, lines, CSSVARS)
         css_variable = formatingFunctions.root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7])
         css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7])
         write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder)
