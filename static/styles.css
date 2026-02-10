@@ -66,6 +66,7 @@
 
 :root body {
 	background-color: white;
+  font-family: 'Noto Serif';
 }
 :root.presentation body {
 	background-color: black;
