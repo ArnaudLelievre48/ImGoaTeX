@@ -174,6 +174,7 @@ if __name__ == "__main__" :
         "#ad5e3b", #color3
         "#362821", #color4
         1.5, #basefontsize
+        "Noto Serif", #font
     ]
 
     if args.filename:
@@ -191,7 +192,7 @@ if __name__ == "__main__" :
         lines = igtexFile.readlines()
         tokens = tokenize_lines(lines)
         presentation = parse(tokens, folder, lines, CSSVARS)
-        css_variable = formatingFunctions.root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7])
-        css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7])
+        css_variable = formatingFunctions.root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
+        css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
         write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder)
         print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./output.html` in {(time.time() - time_compile):.3f} seconds \n")

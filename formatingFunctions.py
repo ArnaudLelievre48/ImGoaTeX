@@ -74,7 +74,7 @@ def parse_text_to_html(text, fontsize):
 
 
 # return the root_css code
-def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.5):
+def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.5, font="Noto Serif"):
     var = f"""
         --ar_width: {as_w};
         --ar_height: {as_h};
@@ -86,13 +86,14 @@ def root_css(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a
         --color3: {color3};
         --color4: {color4};
         --basefontsize: calc({basefontsize}*var(--unit_x));
+        --font: {font};
 """
     css_root = ":root {\n" + var + "}"
     return css_root
 
 
 # return the root_css code for fullscreen
-def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.5):
+def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", color2="#783a1f", color3="#ad5e3b", color4="#362821", basefontsize=1.5, font="Noto Serif"):
     var = f"""
         --ar_width: {as_w};
         --ar_height: {as_h};
@@ -104,6 +105,7 @@ def root_css_fullscreen(as_w=16, as_h=9, bgcolor="#faf3e1", color1="#6b3016", co
         --color3: {color3};
         --color4: {color4};
         --basefontsize: calc({basefontsize}*var(--unit_x));
+        --font: {font};
 """
 
     css_root = ":root.presentation {\n" + var + "}"

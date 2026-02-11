@@ -104,6 +104,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             CSSVARS[6] = val
         if key == "basefontsize":
             CSSVARS[7] = val
+        if key == "font":
+            CSSVARS[8] = val
 
 
     if token.type == "SECTION":

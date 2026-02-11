@@ -3,6 +3,8 @@
 %author: Arnaud Lelièvre
 # basefontsize 1.2 is the default fontsize
 # %basefontsize: 1.2
+# default font is Noto Serif
+# %font: Arial
 
 # here is a comment : this line is discarded from the compiler
 
