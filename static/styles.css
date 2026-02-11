@@ -70,8 +70,31 @@
 }
 :root.presentation body {
 	background-color: black;
+  cursor: None;
 }
-
+#laser {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    background: red;
+    box-shadow:
+        0 0 10px red,
+        0 0 25px red,
+        0 0 60px rgba(255, 0, 0, 0.4);
+    z-index: 999999;
+	transition: top ease-in-out 0.05s, left ease-in-out 0.05s, transform ease-in-out 0.2s;
+}
+:root #laser {
+  display: none;
+}
+:root.presentation #laser {
+  display: block;
+}
 
 :root.presentation .overlay-menu {
   background: rgba(0, 0, 0, 0.05);

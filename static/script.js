@@ -12,6 +12,35 @@ const SCROLL_DELAY = 300;
 loadingMarker.classList.remove("loading");
 loadingMarker.classList.add("loading-done");
 
+const laser = document.getElementById("laser");
+
+let mouseX = 0;
+let mouseY = 0;
+let currentX = 0;
+let currentY = 0;
+
+document.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+function animate() {
+    currentX += (mouseX - currentX) * 0.5;
+    currentY += (mouseY - currentY) * 0.5;
+
+    laser.style.left = currentX + "px";
+    laser.style.top = currentY + "px";
+
+    requestAnimationFrame(animate);
+}
+animate();
+
+document.addEventListener("click", () => {
+    laser.style.transform = "translate(-50%, -50%) scale(5)";
+    setTimeout(() => {
+        laser.style.transform = "translate(-50%, -50%) scale(1)";
+    }, 100);
+});
 
 fullscreenBtn?.addEventListener("click", toggleFullscreen);
 
@@ -20,12 +49,14 @@ function toggleFullscreen() {
 
   if (!document.fullscreenElement) {
     root.requestFullscreen();
+    window.focus();
     root.classList.add("presentation");
     presentationMode = true;
     currentSlide = 0;
     goToSlide(0);
   } else {
     document.exitFullscreen();
+    window.focus();
     root.classList.remove("presentation");
     presentationMode = false;
     goToSlide(0);
@@ -94,6 +125,8 @@ document.getElementById("end").addEventListener("click", () => goToSlide(count -
 // Input events
 slideInput.addEventListener("change", () => goToSlide(Number(slideInput.value)));
 window.addEventListener("keydown", e => {
+  if (e.shiftKey && e.key === "ArrowDown") {e.preventDefault(); goToSlide(count-1)};
+  if (e.shiftKey && e.key === "ArrowUp") {e.preventDefault(); goToSlide(0)};
   if (e.key === "ArrowDown") {e.preventDefault(); goToSlide(currentSlide + 1)};
   if (e.key === "ArrowUp") {e.preventDefault(); goToSlide(currentSlide - 1)};
 });
