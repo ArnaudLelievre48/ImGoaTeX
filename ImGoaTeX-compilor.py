@@ -155,14 +155,18 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
         if CSS_FILE_GENERATION:
             outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js}<script>hljs.highlightAll();</script><style>{css_variable}</style><style>{css_variable_fullscreen}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div><div id="laser"></div>"{body}</body>{javascript}</html>""")
         else:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js} <script>hljs.highlightAll();</script> <style>{css_variable}</style> <style>{css_variable_fullscreen}</style> <style>{style_code}</style> <meta charset="UTF-8"><title>{presentation.title}</title></head> <body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div><div id="laser"></div>{body}</body>{javascript}</html>""")
+            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js}<script>hljs.highlightAll();</script><style>{css_variable}</style><style>{css_variable_fullscreen}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div><div id="laser"></div>{body}</body>{javascript}</html>""")
 
 
 
 
 if __name__ == "__main__" :
-    arguments_parser = argparse.ArgumentParser()
+    arguments_parser = argparse.ArgumentParser(description = "ImGoaTeX compiler")
     arguments_parser.add_argument("filename", help="The file to compile")
+    arguments_parser.add_argument("-s", "--css", action="store_true", help="Unembed the css inside")
+    arguments_parser.add_argument("-S", "--sections", action="store_true", help="Disable sections frames")
+    arguments_parser.add_argument("-O", "--outline", action="store_true", help="Disable outline")
+    arguments_parser.add_argument("-o", "--output", help="Specify the output file name")
     args = arguments_parser.parse_args()
 
     CSSVARS= [
@@ -188,11 +192,35 @@ if __name__ == "__main__" :
             if folder:
                 folder += "/"
 
+
+
+    if args.output is not None:
+        name =  args.output.rsplit(".", 1)[0] + ".html"
+        if args.output.rsplit(".", 1)[-1] != ".html":
+            print("\n"+6*" "+"~>"+2*" "+ f"correcting : '{args.output}' --> '{name}'")
+    else:
+        name = "output.html"
+
+    if args.css:
+        CSS_FILE_GENERATION = True
+    else:
+        CSS_FILE_GENERATION = False
+
+    if args.outline:
+        OUTLINE = False
+    else:
+        OUTLINE = True
+
+    if args.sections:
+        SECTIONS = False
+    else:
+        SECTIONS = True
+
     with open(file, 'r') as igtexFile:
         lines = igtexFile.readlines()
         tokens = tokenize_lines(lines)
         presentation = parse(tokens, folder, lines, CSSVARS)
         css_variable = formatingFunctions.root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
         css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
-        write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder)
-        print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./output.html` in {(time.time() - time_compile):.3f} seconds \n")
+        write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder, name, CSS_FILE_GENERATION, SECTIONS, OUTLINE)
+        print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./{name}` in {(time.time() - time_compile):.3f} seconds \n")
