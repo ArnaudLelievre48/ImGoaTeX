@@ -112,7 +112,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
         if token.value: # if the section has a title
             presentation.sections.append( Section(token.value) ) # create a section with the title : token.value
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n No name were given for the section")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n No name were given for the section")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n No name were given for the section")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n No name were given for the section")
             sys.exit(1)
 
     if token.type == "SUBSECTION":
@@ -120,15 +125,30 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             if presentation.sections != []: # if the presentation has a section
                 presentation.sections[-1].subsections.append( Subsection(token.value) ) # adds the subsection to the last section created
             else:
-                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} --  {lines[token.line]} \n\n the subsection '{token.value}' could not be created : no sections were declared beforehand")
+                if 0 <= token.line-1 <= len(lines)-2:
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} --  {lines[token.line]} \n\n the subsection '{token.value}' could not be created : no sections were declared beforehand")
+                elif 0 > token.line-1:
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} --  {lines[token.line]} \n\n the subsection '{token.value}' could not be created : no sections were declared beforehand")
+                elif token.line-1 > len(lines)-2:
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n the subsection '{token.value}' could not be created : no sections were declared beforehand")
                 sys.exit(1)
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n No name were given for the subsection")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n No name were given for the subsection")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} {lines[token.line]} \n\n No name were given for the subsection")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} \n\n No name were given for the subsection")
             sys.exit(1)
 
     if token.type == "BEGIN_FRAME":
         if current_frame is not None:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n the frame '{current_frame.title}' could not be created, the frame '{presentation.sections[-1].subsections[-1].frames[-1].title}' has not been ended.")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n the frame '{token.value[0]}' could not be created, the frame '{presentation.sections[-1].subsections[-1].frames[-1].title}' has not been ended.")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n the frame '{token.value[0]}' could not be created, the frame '{presentation.sections[-1].subsections[-1].frames[-1].title}' has not been ended.")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n the frame '{token.value[0]}' could not be created, the frame '{presentation.sections[-1].subsections[-1].frames[-1].title}' has not been ended.")
             sys.exit(1)
         if presentation.sections != []:
             if presentation.sections[-1].subsections != []:
@@ -136,17 +156,32 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                 presentation.sections[-1].subsections[-1].frames.append( Frame(frame_title, frame_subtitle, None, frame_options, frame_animations) )
                 current_frame = presentation.sections[-1].subsections[-1].frames[-1]
             else:
-                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
+                if 0 <= token.line-1 <= len(lines)-2:
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
+                elif 0 > token.line-1:
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
+                elif token.line-1 > len(lines)-2:
+                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The frame '{token.value[0]}' could not be created : no subsections were declared beforehand")
                 sys.exit(1)
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no sections were declared beforehand")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no sections were declared beforehand")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The frame '{token.value[0]}' could not be created : no sections were declared beforehand")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The frame '{token.value[0]}' could not be created : no sections were declared beforehand")
             sys.exit(1)
 
     if token.type == "END_FRAME":
         if current_frame is not None:
             current_frame = None
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot end a frame")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot end a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot end a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot end a frame")
             sys.exit(1)
 
     if token.type == "PAUSE":
@@ -159,7 +194,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             current_frame.animations  = animations_next
             presentation.sections[-1].subsections[-1].frames.append( current_frame  )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to pause, but you were not in a frame.")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You tried to pause, but you were not in a frame.")
 
     if token.type == "ITEM":
         inside_token = token.value
@@ -180,7 +220,13 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             current_frame.contents.append( formatingFunctions.parse_text_to_html( token.value, 1 ) )
             #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
+            print(token.line, len(lines)-2)
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot add text to a frame")
             sys.exit(1)
 
     if token.type == "VIDEO":
@@ -214,12 +260,22 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 try:
                                     degre = f"{ str(float(arg.split('_')[1])) }deg"
                                 except:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The value given to rotate is incorrect, please use a float (deg)")
                                     sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
                                 if len(arg.split('+')) != 4:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
                                     sys.exit(1)
 
                                 shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
@@ -244,7 +300,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             except:
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a video to a frame")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a video to a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a video to a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot add a video to a frame")
             sys.exit(1)
 
     if token.type == "IMAGE":
@@ -276,12 +337,22 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 try:
                                     degre = f"{ str(float(arg.split('_')[1])) }deg"
                                 except:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The value given to rotate is incorrect, please use a float (deg)")
                                     sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
                                 if len(arg.split('+')) != 4:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
                                     sys.exit(1)
 
                                 shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
@@ -306,7 +377,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             except:
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an image to a frame")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an image to a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an image to a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot add an image to a frame")
             sys.exit(1)
 
     if token.type == "IFRAME":
@@ -338,12 +414,22 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 try:
                                     degre = f"{ str(float(arg.split('_')[1])) }deg"
                                 except:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The value given to rotate is incorrect, please use a float (deg)")
                                     sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
                                 if len(arg.split('+')) != 4:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
                                     sys.exit(1)
 
                                 shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
@@ -362,7 +448,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             except:
                 current_frame.contents.append( f"<div class='{iframeclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot add an iframe to a frame")
             sys.exit(1)
 
     if token.type == "CODEBLOCK":
@@ -401,12 +492,22 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 try:
                                     degre = f"{ str(float(arg.split('_')[1])) }deg"
                                 except:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The value given to rotate is incorrect, please use a float (deg)")
                                     sys.exit(1)
                             if arg[:5] == "shift":
                                 arg = arg.split("_")[1]
                                 if len(arg.split('+')) != 4:
-                                    print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    if 0 <= token.line-1 <= len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif 0 > token.line-1:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                                    elif token.line-1 > len(lines)-2:
+                                        print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
                                     sys.exit(1)
 
                                 shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
@@ -425,7 +526,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             except:
                 current_frame.contents.append( f"<div class='{codeblockclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an iframe to a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot add an iframe to a frame")
             sys.exit(1)
 
 
@@ -441,7 +547,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             except:
                 current_frame.contents.append( f"<div class='{codelineclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an codeline to a frame")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an codeline to a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add an codeline to a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot add an codeline to a frame")
             sys.exit(1)
 
 
@@ -476,18 +587,33 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                         try:
                             fontsize = float(arg.split('_')[1])
                         except:
-                            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (paging unit x)")
+                            if 0 <= token.line-1 <= len(lines)-2:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (paging unit x)")
+                            elif 0 > token.line-1:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (paging unit x)")
+                            elif token.line-1 > len(lines)-2:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The value given to rotate is incorrect, please use a float (paging unit x)")
 
                     elif arg[:6] == "rotate":
                         try:
                             degre = f"{ str(float(arg.split('_')[1])) }deg"
                         except:
-                            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                            if 0 <= token.line-1 <= len(lines)-2:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                            elif 0 > token.line-1:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n The value given to rotate is incorrect, please use a float (deg)")
+                            elif token.line-1 > len(lines)-2:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n The value given to rotate is incorrect, please use a float (deg)")
                             sys.exit(1)
                     elif arg[:5] == "shift":
                         arg = arg.split("_")[1]
                         if len(arg.split('+')) != 4:
-                            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                            if 0 <= token.line-1 <= len(lines)-2:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                            elif 0 > token.line-1:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
+                            elif token.line-1 > len(lines)-2:
+                                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You tried to use shift, but the syntax was wrong, the right syntax is : shift=[top]+[right]+[bottom]+[left], the shift option is adding padding to the oposite direction to place the media, with paging unit")
                             sys.exit(1)
 
                         shift_top = f"calc( {arg.split('+')[2]}*var(--unit_y) )"
@@ -504,7 +630,12 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                 text_inside_html = f"<div class='{imgclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div>{ formatingFunctions.parse_text_to_html( token.value[0].value, fontsize ) }</div></div></div>"
             current_frame.contents.append( text_inside_html )
         else:
-            print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a textbox to a frame")
+            if 0 <= token.line-1 <= len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a textbox to a frame")
+            elif 0 > token.line-1:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a textbox to a frame")
+            elif token.line-1 > len(lines)-2:
+                print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You are not in a frame, you thus cannot add a textbox to a frame")
             sys.exit(1)
 
     return(current_frame)
