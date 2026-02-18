@@ -220,7 +220,6 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             current_frame.contents.append( formatingFunctions.parse_text_to_html( token.value, 1 ) )
             #print(presentation.sections[-1].subsections[-1].frames[-1].contents)
         else:
-            print(token.line, len(lines)-2)
             if 0 <= token.line-1 <= len(lines)-2:
                 print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add text to a frame")
             elif 0 > token.line-1:
