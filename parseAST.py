@@ -541,7 +541,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             if current_frame.subtitle is not None:
                 codelineclass = "mediaoverlaySub"
             try:
-                codeline_html = f"<div class='codeline' overflow='scroll'><div class='codewrapper'><pre><code class='{token.value[1].replace("=","-")}'>{textwrap.dedent(token.value[0])}</code></pre></div></div>"
+                codeline_html = f"""<div class='codeline' overflow='scroll'><div class='codewrapper'><pre><code class='{token.value[1].replace("=","-")}'>{textwrap.dedent(token.value[0])}</code></pre></div></div>"""
                 current_frame.contents.append( codeline_html )
             except:
                 current_frame.contents.append( f"<div class='{codelineclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
