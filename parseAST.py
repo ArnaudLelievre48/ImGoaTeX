@@ -287,9 +287,9 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
 
                     if PORTABLE_MEDIAS:
                         if inline:
-                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"
+                            video_html = f"""<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"""
                         else:
-                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"
+                            video_html = f"""<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"""
                     else:
                         if inline:
                             video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
@@ -363,9 +363,9 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
 
                     if PORTABLE_MEDIAS:
                         if inline:
-                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"
+                            image_html = f"""<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"""
                         else:
-                            image_html = f"<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"
+                            image_html = f"""<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"""
                     else:
                         if inline:
                             image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
