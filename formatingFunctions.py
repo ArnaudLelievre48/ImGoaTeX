@@ -28,7 +28,7 @@ def split_outside_math(text):
             continue
 
         # Only split if we are **outside all math**
-        if not in_inline and not in_display and text[i] in ['\\', '\n']:
+        if not in_inline and not in_display and text[i] in ['\\\\', '\n']:
             parts.append(buf)
             buf = ""
             i += 1
@@ -57,10 +57,14 @@ def parse_text_to_html(text, fontsize):
         parts[i] = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', parts[i])
         # * ... * or _ ... _ to <i> ... </i>
         parts[i] = re.sub(r'\*(.+?)\*', r'<i>\1</i>', parts[i])
+        # \hspace to <span class="hspace" style="width=calc(...*var(--unit_x))"></span>
+        parts[i] = re.sub(r'!hspace ', r'<span class="hspace"></span>', parts[i])
         # \textbf{...} to <b> ... </b>
         parts[i] = re.sub(r'\\textbf\{(.+?)\}', r'<b>\1</b>', parts[i])
         # \textit{...} to <i> ... </i>
         parts[i] = re.sub(r'\\textit\{(.+?)\}', r'<i>\1</i>', parts[i])
+        # \link{...}{...} to <a href='...'> ... </a>
+        parts[i] = re.sub(r'\\link\{(.+?)\}\[(.+?)\]', r'<a href="\2">\1</a>', parts[i])
 
     outText = ''
     for part in parts:

@@ -619,7 +619,11 @@ iframe.size_4 {
 }
 
 
-
+span.hspace{
+  display: inline-block;
+  width: calc(5*var(--unit_x));
+  height: 0;
+}
 
 span.katex-display {
 	width: calc(90 * var(--unit_x)) !important;
