@@ -369,6 +369,12 @@ body {
 	padding-right: 5%;
 	overflow: hidden;
 }
+.frameContent.font_small p {
+  font-size: calc(0.75 * var(--basefontsize)) !important;
+}
+.frameContent.font_big p {
+  font-size: calc(1.25 * var(--basefontsize)) !important;
+}
 .frameContentSub {
 	display: flex;
 	flex-direction: column;
