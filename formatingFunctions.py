@@ -28,11 +28,18 @@ def split_outside_math(text):
             continue
 
         # Only split if we are **outside all math**
-        if not in_inline and not in_display and text[i] in ['\\\\', '\n']:
+        if not in_inline and not in_display and text[i] in ['\n']:
             parts.append(buf)
             buf = ""
             i += 1
             continue
+
+        if (i+1) < len(text):
+            if not in_inline and not in_display and text[i:i+2] in [r'\\', r'\n']:
+                parts.append(buf)
+                buf = ""
+                i += 2
+                continue
 
         # Otherwise, just append the character
         buf += text[i]
@@ -51,14 +58,14 @@ def parse_text_to_html(text, fontsize):
     #parts = re.split(r'(\\\\|\\n|\$)', text)
     #parts = re.split(r'(?:\\\\|\n)(?=(?:[^$]*\$[^$]*\$)*[^$]*$)', text)
     parts = split_outside_math(text)
-    bad = {r"\\", r"\n"}
+    bad = {r'\\', r"\n"}
     for i in range(len(parts)):
         # ** ... ** to <b> ... </b>
         parts[i] = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', parts[i])
         # * ... * or _ ... _ to <i> ... </i>
         parts[i] = re.sub(r'\*(.+?)\*', r'<i>\1</i>', parts[i])
-        # \hspace to <span class="hspace" style="width=calc(...*var(--unit_x))"></span>
-        parts[i] = re.sub(r'!hspace ', r'<span class="hspace"></span>', parts[i])
+        # !htab to <span class="hspace" style="width=calc(...*var(--unit_x))"></span>
+        parts[i] = re.sub(r'!htab', r'<span class="hspace"></span>', parts[i])
         # \textbf{...} to <b> ... </b>
         parts[i] = re.sub(r'\\textbf\{(.+?)\}', r'<b>\1</b>', parts[i])
         # \textit{...} to <i> ... </i>
