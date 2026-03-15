@@ -81,7 +81,7 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
             SUBSECTIONS_HTML = ""
             for l in range(len(presentation.sections[k].subsections)):
                 SUBSECTIONS_HTML = SUBSECTIONS_HTML + f"<h3 onclick='goToSlide({INDEXES[(k,l)]})'>● {presentation.sections[k].subsections[l].title}</h3>"
-            SECTION_FRAME = f"<div id='{frame_number}' class='frame ZoomIn RotateOut'><h1 style='padding-top: calc(10*var(--uniit_y))'>{presentation.sections[k].title}</h1><div class='subsectionsOfSection'>{SUBSECTIONS_HTML}</div></div>"
+            SECTION_FRAME = f"<div id='{frame_number}' class='frame ZoomIn FadeOut'><h1 style='padding-top: calc(10*var(--uniit_y))'>{presentation.sections[k].title}</h1><div class='subsectionsOfSection'>{SUBSECTIONS_HTML}</div></div>"
             FRAMES = FRAMES + SECTION_FRAME
             frame_number += 1
         for l in range(len(presentation.sections[k].subsections)):
@@ -95,9 +95,9 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
                 for arg in presentation.sections[k].subsections[l].frames[m].animations:
                     classes_animations += arg + " "
                 if presentation.sections[k].subsections[l].frames[m].subtitle is not None:
-                    FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2><h3 class='frameNumber'>{frame_number}</h3></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div>"
+                    FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2><h3 class='frameNumber'>{frame_number}</h3></div><div class='frameSubtitle'><h3>{presentation.sections[k].subsections[l].frames[m].subtitle}</h3></div><div class='mediaoverlay position_bottom-right'><p style='color: var(--color3); padding: calc( 0*var(--unit_y) ) calc( 2*var(--unit_x) ) calc( 1*var(--unit_y) ) calc( 0*var(--unit_x) )'>{frame_number}</p></div>"
                 else:
-                    FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2><h3 class='frameNumber'>{frame_number}</h3></div>"
+                    FRAME_BODY = f"<div class='frameTitle'><h2>{k+1}.{l+1}-{m+1} : {presentation.sections[k].subsections[l].frames[m].title}</h2><h3 class='frameNumber'>{frame_number}</h3></div><div class='mediaoverlay position_bottom-right'><p style='color: var(--color3); padding: calc( 0*var(--unit_y) ) calc( 2*var(--unit_x) ) calc( 1*var(--unit_y) ) calc( 0*var(--unit_x) )'>{frame_number}</p></div>"
                 if presentation.sections[k].subsections[l].frames[m].subtitle:
                     FRAME_BODY = FRAME_BODY + f"<div class='frameContentSub {classes}'>"
                 else:
