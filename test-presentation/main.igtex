@@ -26,7 +26,7 @@ Here I used a pause command to make a Beamer-like animation that simply copies a
 \video{myvideo.mkv}[size=2, position=left-bottom, rotate= 45, RotateIn]
 some text, the align is top-right \\ the image is shifted to $20$ **y-paging units** to the top !
 \pause
-\image{ImGoaTeX.png}[size=3, shift = 20+0+0+0, MoveBottomIn]
+\image{ImGoaTeX.png}[size=3, shift = 20+0+0+0]
 \pause
 SOME MORE TEXT AGAIN
 \end{frame}

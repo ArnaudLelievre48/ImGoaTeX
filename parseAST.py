@@ -248,8 +248,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     shift_left = "0px"
                     degre="0deg"
                 # treat options
+                    token_animated = False
                     if token.value[1] is not None:
-                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -347,8 +347,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     shift_left = "0px"
                     degre="0deg"
                     # treat options
+                    token_animated = False
                     if token.value[1] is not None:
-                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -419,6 +419,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
 
                 current_frame.contents.append( image_html )
             except:
+                print("FILE NOT FOUND ????")
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
         else:
             if 0 <= token.line-1 <= len(lines)-2:
@@ -446,8 +447,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     shift_left = "0px"
                     degre="0deg"
                     # treat options
+                    token_animated = False
                     if token.value[1] is not None:
-                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -535,8 +536,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     degre="0deg"
                     # treat options
                     language = ""
+                    token_animated = False
                     if token.value[1] is not None:
-                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -647,8 +648,8 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             shift_left = "0px"
             degre="0deg"
             # treat options
+            token_animated = False
             if token.value[1] is not None:
-                token_animated = False
                 for arg in token.value[1]:
                     arg = arg.replace(" ", "")
                     arg = arg.replace("=", "_")
