@@ -33,14 +33,20 @@ SOME MORE TEXT AGAIN
 
 \begin{frame}{images}{with no arguments}[align=right]
 \image{ImGoaTeX.png} ceci est un test # commentaire
-\textbox{some text inside the text box}[position=right-bottom, shift=5+0+0+20, border]
+\pause
+\textbox{some text inside the text box}[position=right-bottom, shift=5+0+0+20, border, MoveLeftIn]
+\pause
+test de ouf encore
 \end{frame}
 
 \begin{frame}{images}{with a size=2, right-top, with a subtitle}<ZoomOut, FadeIn>
 \image{mygif.gif}[position=right-top, size=2]
 \image{mygif.gif}[position=bottom, size=3]
 some text, the image will be inline :
+\pause
 \image{ImGoaTeX.png}[size=3, shift = 0+10+0+0, inline]
+\textbox{some text inside the text box}[position=right-bottom, shift=5+0+0+20, border, MoveLeftIn]
+\pause
 some more text
 \end{frame}
 

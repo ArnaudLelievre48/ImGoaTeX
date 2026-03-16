@@ -131,7 +131,7 @@ def tokenize_expression(expression, line_number, lines):
 
             elif typ == "TEXTBOX":
                 if matching.groups()[1]:
-                    text_inside_token, args_text = Token("TEXT", matching.group(1), line_number), matching.group(2).split(",")
+                    text_inside_token, args_text= Token("TEXT", matching.group(1), line_number), matching.group(2).split(",")
                     return Token(typ, tuple([text_inside_token, args_text]), line_number ), after_expression
                 else:
                     return Token(typ, tuple([Token("TEXT", matching.group(1), line_number), None]), line_number), after_expression

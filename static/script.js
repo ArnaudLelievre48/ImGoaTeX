@@ -9,6 +9,31 @@ let presentationMode = false;
 let scrollLocked = false;
 const SCROLL_DELAY = 300;
 
+const animClasses = [
+  "NoneIn",
+  "FadeIn",
+  "MoveRightIn",
+  "MoveLeftIn",
+  "MoveTopIn",
+  "MoveBottomIn",
+  "ZoomIn",
+  "RotateIn"
+];
+
+
+const groups = {};
+
+document.querySelectorAll(".to_animate[data-group]").forEach(el => {
+  const g = el.dataset.group;
+
+  if (!groups[g]) {
+    groups[g] = el; // first element keeps animation
+  } else {
+    animClasses.forEach(c => el.classList.remove(c));
+    el.classList.remove("to_animate");
+  }
+});
+
 loadingMarker.classList.remove("loading");
 loadingMarker.classList.add("loading-done");
 
@@ -74,13 +99,25 @@ document.addEventListener("fullscreenchange", () => {
 });
 
 function updateActiveSlide(n) {
-  document.querySelectorAll(".frame.active")
-    .forEach(f => f.classList.remove("active"));
+
+  // deactivate current frames
+  document.querySelectorAll(".frame.active").forEach(frame => {
+    frame.classList.remove("active");
+
+    // reset animations inside the frame
+    frame.querySelectorAll(".to_animate.active")
+      .forEach(el => el.classList.remove("active"));
+  });
 
   const frame = document.getElementById(String(n));
-  if (frame) frame.classList.add("active");
-}
 
+  if (frame) {
+    frame.classList.add("active");
+
+    frame.querySelectorAll(".to_animate")
+      .forEach(el => el.classList.add("active"));
+  }
+}
 
 // Find all slides with numeric IDs and sort them
 const slides = Array.from(document.querySelectorAll("div[id]"))

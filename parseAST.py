@@ -8,7 +8,8 @@ import html
 
 import formatingFunctions
 
-
+animation_index = 0
+supported_animations_In = ["NoneIn", "FadeIn", "MoveRightIn", "MoveLeftIn", "MoveTopIn", "MoveBottomIn", "ZoomIn", "RotateIn"]
 
 # data structure for each token type
 class Presentation:
@@ -74,6 +75,7 @@ class Video:
 
 # treat a token and how it is added to the presentation. The function returns current_frame, which is - so far - all that is necessary - besides presetation - to describe the state of the presentation being build 
 def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder, CSSVARS, lines):
+    global animation_index
     if token.type == "META":
         key, val = token.value
         if key == "title":
@@ -574,6 +576,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             degre="0deg"
             # treat options
             if token.value[1] is not None:
+                token_animated = False
                 for arg in token.value[1]:
                     arg = arg.replace(" ", "")
                     arg = arg.replace("=", "_")
@@ -620,14 +623,26 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                         shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
                         shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
 
-                    else:
+                    elif arg in supported_animations_In:
+                        token_animated = True
                         classes = classes + arg + " "
 
-            if inline:
-                text_inside_html = f"<div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre});'><div>{ formatingFunctions.parse_text_to_html( token.value[0].value, fontsize ) }</div></div>"
+                    else:
+                        classes = classes + arg + " "
+            if token_animated:
+                if inline:
+                    text_inside_html = f"<div class='wrapper {classes + ' to_animate '}' data-group='{animation_index}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre});'><div>{ formatingFunctions.parse_text_to_html( token.value[0].value, fontsize ) }</div></div>"
+                else:
+                    text_inside_html = f"<div class='{imgclass} {classes_pos}'><div class='wrapper {classes + ' to_animate '}' data-group='{animation_index}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div>{ formatingFunctions.parse_text_to_html( token.value[0].value, fontsize ) }</div></div></div>"
+                current_frame.contents.append( text_inside_html )
+                animation_index += 1
+
             else:
-                text_inside_html = f"<div class='{imgclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div>{ formatingFunctions.parse_text_to_html( token.value[0].value, fontsize ) }</div></div></div>"
-            current_frame.contents.append( text_inside_html )
+                if inline:
+                    text_inside_html = f"<div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre});'><div>{ formatingFunctions.parse_text_to_html( token.value[0].value, fontsize ) }</div></div>"
+                else:
+                    text_inside_html = f"<div class='{imgclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div>{ formatingFunctions.parse_text_to_html( token.value[0].value, fontsize ) }</div></div></div>"
+                current_frame.contents.append( text_inside_html )
         else:
             if 0 <= token.line-1 <= len(lines)-2:
                 print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- {lines[token.line]} \n\n You are not in a frame, you thus cannot add a textbox to a frame")

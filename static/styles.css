@@ -247,6 +247,11 @@ body {
 :root.presentation .frame.active {
 	transform: rotate(0deg); /*  very important, allows for good image placement with top: 0vh; in mediaoverlay */
 }
+:root.presentation .to_animate {
+  opacity: 0;
+  display: hidden;
+  animation-delay: 0.3s;
+}
 
 /* Out animations classes */
 :root.presentation .NoneOut {
@@ -275,35 +280,46 @@ body {
 }
 
 /* IN animations classes */
+:root.presentation .active {
+  display: visible;
+}
 :root.presentation .active.NoneIn {
+  opacity: 0;
   animation: slideNoneIn 0.001s ease forwards;
 	animation-delay: 0.001s;
 }
 :root.presentation .active.FadeIn {
+  opacity: 0;
   animation: slideFadeIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
 :root.presentation .active.MoveRightIn {
+  opacity: 0;
   animation: slideMoveRightIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
 :root.presentation .active.MoveLeftIn {
+  opacity: 0;
   animation: slideMoveLeftIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
 :root.presentation .active.MoveTopIn {
+  opacity: 0;
   animation: slideMoveTopIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
 :root.presentation .active.MoveBottomIn {
+  opacity: 0;
   animation: slideMoveBottomIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
 :root.presentation .active.ZoomIn {
+  opacity: 0;
   animation: slideZoomIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
 :root.presentation .active.RotateIn {
+  opacity: 0;
   animation: slideRotateIn 0.3s ease forwards;
 	animation-delay: 0.3s;
 }
