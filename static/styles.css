@@ -15,11 +15,11 @@
   to   { opacity: 1; transform: translate(0); }
 }
 @keyframes slideMoveTopIn {
-  from { opacity: 0; transform: translate(0vw, 100vh); }
+  from { opacity: 0; transform: translate(0vw, -100vh); }
   to   { opacity: 1; transform: translate(0); }
 }
 @keyframes slideMoveBottomIn {
-  from { opacity: 0; transform: translate(0vw, -100vh); }
+  from { opacity: 0; transform: translate(0vw, 100vh); }
   to   { opacity: 1; transform: translate(0); }
 }
 @keyframes slideZoomIn {

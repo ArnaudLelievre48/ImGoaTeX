@@ -249,6 +249,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     degre="0deg"
                 # treat options
                     if token.value[1] is not None:
+                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -284,19 +285,39 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
                                 shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
 
+                            elif arg in supported_animations_In:
+                                token_animated = True
+                                classes = classes + arg + " "
+
                             else:
                                 classes = classes + arg + " "
 
                     if PORTABLE_MEDIAS:
-                        if inline:
-                            video_html = f"""<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"""
+                        if token_animated:
+                            if inline:
+                                video_html = f"""<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"""
+                            else:
+                                video_html = f"""<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"""
+                            animation_index += 1
                         else:
-                            video_html = f"""<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"""
+                            if inline:
+                                video_html = f"""<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video>"""
+                            else:
+                                video_html = f"""<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:video/mp4;base64,{base64.b64encode(vid.read()).decode("utf-8")}' controls autoplay loop muted></video></div>"""
+
                     else:
-                        if inline:
-                            video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
+                        if token_animated:
+                            if inline:
+                                video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
+                            else:
+                                video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video></div>"
+                            animation_index += 1
                         else:
-                            video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video></div>"
+                            if inline:
+                                video_html = f"<video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video>"
+                            else:
+                                video_html = f"<div class='{imgclass} {classes_pos}'><video style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[0]}' controls autoplay loop muted></video></div>"
+
                     current_frame.contents.append( video_html )
             except:
                 current_frame.contents.append( f"<div class='{imgclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the file : '{folder}medias/{token.value[0]} '</p></div>" )
@@ -327,6 +348,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     degre="0deg"
                     # treat options
                     if token.value[1] is not None:
+                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -360,19 +382,40 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
                                 shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
                                 shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+
+                            elif arg in supported_animations_In:
+                                token_animated = True
+                                classes = classes + arg + " "
+
                             else:
                                 classes = classes + arg + " "
 
                     if PORTABLE_MEDIAS:
-                        if inline:
-                            image_html = f"""<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"""
+                        if token_animated:
+                            if inline:
+                                image_html = f"""<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"""
+                            else:
+                                image_html = f"""<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"""
+                            animation_index += 1
+
                         else:
-                            image_html = f"""<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"""
+                            if inline:
+                                image_html = f"""<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img>"""
+                            else:
+                                image_html = f"""<div class='{imgclass} {classes_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='data:image/png;base64,{base64.b64encode(img.read()).decode("utf-8")}'></img></div>"""
                     else:
-                        if inline:
-                            image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
+                        if token_animated:
+                            if inline:
+                                image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='{folder}medias/{token.value[1]}'></img>"
+                            else:
+                                image_html = f"<div class='{imgclass} {imgclass_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes + ' to_animate '}' data-group='{animation_index}' src='{folder}medias/{token.value[1]}'></img></div>"
+                            animation_index += 1
                         else:
-                            image_html = f"<div class='{imgclass} {imgclass_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img></div>"
+                            if inline:
+                                image_html = f"<img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img>"
+                            else:
+                                image_html = f"<div class='{imgclass} {imgclass_pos}'><img style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})' class='{classes}' src='{folder}medias/{token.value[1]}'></img></div>"
+
 
                 current_frame.contents.append( image_html )
             except:
@@ -404,6 +447,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     degre="0deg"
                     # treat options
                     if token.value[1] is not None:
+                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -437,13 +481,25 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
                                 shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
                                 shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+
+                            elif arg in supported_animations_In:
+                                token_animated = True
+                                classes = classes + arg + " "
+
                             else:
                                 classes = classes + arg + " "
 
-                    if inline:
-                        iframe_html = f"<iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe>"
+                    if token_animated:
+                        if inline:
+                            iframe_html = f"<iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes + ' to_animate '}' data-group='{animation_index}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe>"
+                        else:
+                            iframe_html = f"<div class='{iframeclass} {classes_pos}'><iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes + ' to_animate '}' data-group='{animation_index}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe></div>"
+                        animation_index += 1
                     else:
-                        iframe_html = f"<div class='{iframeclass} {classes_pos}'><iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe></div>"
+                        if inline:
+                            iframe_html = f"<iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe>"
+                        else:
+                            iframe_html = f"<div class='{iframeclass} {classes_pos}'><iframe style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='{classes}' overflow='hidden' scrolling='no' frameBorder='0' class='{classes}' border='0' src='{token.value[0]}?widget=false&amp;headers=false&amp;chrome=false&amp;rm=minimal;frameborder=0'></iframe></div>"
 
                 current_frame.contents.append( iframe_html )
             except:
@@ -480,6 +536,7 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                     # treat options
                     language = ""
                     if token.value[1] is not None:
+                        token_animated = False
                         for arg in token.value[1]:
                             arg = arg.replace(" ", "")
                             arg = arg.replace("=", "_")
@@ -515,15 +572,30 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                                 shift_right = f"calc( {arg.split('+')[3]}*var(--unit_x) )"
                                 shift_bottom = f"calc( {arg.split('+')[0]}*var(--unit_y) )"
                                 shift_left  = f"calc( {arg.split('+')[1]}*var(--unit_x) )"
+
+                            elif arg in supported_animations_In:
+                                token_animated = True
+                                classes = classes + arg + " "
+
                             else:
                                 classes = classes + arg + " "
 
-                    if inline:
-                        codeblock_html = f"<div style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='wrapper {classes}' overflow='scroll'><div class='codewrapper'><pre><code class='{language}'>{code}</code></pre></div></div>"
-                    else:
-                        codeblock_html = f"<div class='{codeblockclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div class='codewrapper'><pre><code class='{language}'>{ code }</code></pre></div></div></div>"
+                    if token_animated:
+                        if inline:
+                            codeblock_html = f"<div style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='wrapper {classes + ' to_animate '}' data-group='{animation_index}' overflow='scroll'><div class='codewrapper'><pre><code class='{language}'>{code}</code></pre></div></div>"
+                        else:
+                            codeblock_html = f"<div class='{codeblockclass} {classes_pos}'><div class='wrapper {classes + ' to_animate '}' data-group='{animation_index}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div class='codewrapper'><pre><code class='{language}'>{ code }</code></pre></div></div></div>"
+                        current_frame.contents.append( codeblock_html )
+                        animation_index += 1
 
-                current_frame.contents.append( codeblock_html )
+
+                    else:
+                        if inline:
+                            codeblock_html = f"<div style='width: calc(20*var(--unit_x)); padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre}); overflow:hidden; border:0;' class='wrapper {classes}' overflow='scroll'><div class='codewrapper'><pre><code class='{language}'>{code}</code></pre></div></div>"
+                        else:
+                            codeblock_html = f"<div class='{codeblockclass} {classes_pos}'><div class='wrapper {classes}' style='padding: {shift_top} {shift_right} {shift_bottom} {shift_left}; transform: rotate({degre})'><div class='codewrapper'><pre><code class='{language}'>{ code }</code></pre></div></div></div>"
+
+                    current_frame.contents.append( codeblock_html )
             except:
                 current_frame.contents.append( f"<div class='{codeblockclass}'><p style='border: solid 2px var(--color1); padding: 5em'> Cannot find the website : '{token.value[0]} '</p></div>" )
         else:
