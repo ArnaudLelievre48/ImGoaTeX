@@ -13,4 +13,12 @@
 Hello, welcome to coding in **ImGoaTeX**!
 \pause<MoveRightIn, ZoomOut>
 Here I used a pause command to make a Beamer-like animation that simply copies a frame \\ Have fun using **ImGoaTex** !
+\pause
+\item{test}[test]
+\item{test}[MoveLeftIn]
+\pause
+\subitem{new test}[test]
+\subitem{new test}[RotateIn]
+\pause
+some other text
 \end{frame}

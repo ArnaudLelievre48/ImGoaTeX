@@ -204,16 +204,28 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
                 print(f"ERROR AT LINE {token.line} : \n\n {token.line-1} -- {lines[token.line-2]} {token.line} >> {lines[token.line-1]} {token.line+1} -- \n\n You tried to pause, but you were not in a frame.")
 
     if token.type == "ITEM":
-        inside_token = token.value
+        inside_token = token.value[0]
+        animation = token.value[1]
         if current_frame:
-            current_frame.contents.append( "<div class='item'>" )
+            if animation is not None:
+                current_frame.contents.append( f"<div class='item to_animate {animation}' data-group='{animation_index}'>" )
+                animation_index += 1
+            else:
+                current_frame.contents.append( "<div class='item'>" )
+
             current_frame = parse_filtering(inside_token, presentation, PORTABLE_MEDIAS, current_frame, folder, CSSVARS, lines)
             current_frame.contents.append( "</div>" )
 
     if token.type == "SUBITEM":
-        inside_token = token.value
+        inside_token = token.value[0]
+        animation = token.value[1]
         if current_frame:
-            current_frame.contents.append( "<div class='subitem'>" )
+            if animation is not None:
+                current_frame.contents.append( f"<div class='subitem to_animate {animation}' data-group='{animation_index}'>" )
+                animation_index += 1
+            else:
+                current_frame.contents.append( "<div class='subitem'>" )
+
             current_frame = parse_filtering(inside_token, presentation,PORTABLE_MEDIAS, current_frame, folder, CSSVARS, lines)
             current_frame.contents.append( "</div>" )
 

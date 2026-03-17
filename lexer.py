@@ -5,6 +5,7 @@ import sys
 
 Token = namedtuple("Token", ["type", "value", "line"])
 
+supported_animations_In = ["NoneIn", "FadeIn", "MoveRightIn", "MoveLeftIn", "MoveTopIn", "MoveBottomIn", "ZoomIn", "RotateIn"]
 
 # regex patterns
 #(r'^\\begin\{frame\}((?:\{[^}]*\})+)', "BEGIN_FRAME"),
@@ -26,8 +27,8 @@ TOKEN_PATTERNS = [
     (r'^\\codeblock\{([^}]*)\}(?:\[([^\]]*)\])?', "CODEBLOCK"),
     (r'^\\codeline\{([^}]*)\}(?:\[([^\]]*)\])?', "CODELINE"),
     (r'^\\textbox\{((?:\$[^$]*\$|[^}])*)\}(?:\[([^\]]*)\])?', "TEXTBOX"),
-    (r'^\\item\{((?:\$[^$]*\$|[^}])*)\}', "ITEM"),
-    (r'^\\subitem\{((?:\$[^$]*\$|[^}])*)\}', "SUBITEM"),
+    (r'^\\item\{((?:\$[^$]*\$|[^}])*)\}(?:\[([^\]]*)\])?', "ITEM"),
+    (r'^\\subitem\{((?:\$[^$]*\$|[^}])*)\}(?:\[([^\]]*)\])?', "SUBITEM"),
     (r'^#\.*', "COMMENT"),
     (r'^\\pause(?:\<([^\]]*)\>)?', "PAUSE"),
 ]
@@ -137,14 +138,22 @@ def tokenize_expression(expression, line_number, lines):
                     return Token(typ, tuple([Token("TEXT", matching.group(1), line_number), None]), line_number), after_expression
 
             elif typ == "ITEM":
+                if matching.group(2).strip(" ") in supported_animations_In:
+                    animation = matching.group(2).strip(" ")
+                else:
+                    animation = None
                 if matching.group(1):
                     token_inside, _ = tokenize_expression("● " + matching.group(1), line_number, lines)
-                return ( Token(typ, token_inside, line_number) ), after_expression
+                return ( Token(typ, tuple( [token_inside, animation] ), line_number) ), after_expression
 
             elif typ == "SUBITEM":
+                if matching.group(2).strip(" ") in supported_animations_In:
+                    animation = matching.group(2).strip(" ")
+                else:
+                    animation = None
                 if matching.group(1):
                     token_inside, _ = tokenize_expression("○ " + matching.group(1), line_number, lines)
-                return ( Token(typ, token_inside, line_number) ), after_expression
+                return ( Token(typ, tuple( [token_inside, animation] ), line_number) ), after_expression
 
             else:
                 if matching.groups():
