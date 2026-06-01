@@ -300,6 +300,6 @@ if __name__ == "__main__" :
         css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
         write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder, name, CSS_FILE_GENERATION, SECTIONS, OUTLINE)
         if TO_PDF:
-            html_to_pdf(folder+name, folder + name.rsplit(".", 1)[0] + ".pdf")
+            html_to_pdf(os.path.join(folder, "output.html"), os.path.splitext(html_file)[0] + ".pdf")
 
         print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./{name}` in {(time.time() - time_compile):.3f} seconds \n")
