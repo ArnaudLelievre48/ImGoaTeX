@@ -1,3 +1,13 @@
+/* get the colors for the PDF version */
+@media print {
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+}
+
 @keyframes slideNoneIn {
   from { opacity: 1; }
   to   { opacity: 1; }

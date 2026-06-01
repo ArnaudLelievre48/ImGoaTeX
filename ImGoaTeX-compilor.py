@@ -7,17 +7,89 @@ import argparse
 from pathlib import Path
 import os, sys
 import time
+from playwright.sync_api import sync_playwright
 
 import formatingFunctions
 import lexer
 import parseAST
 
-
+from playwright.sync_api import sync_playwright
 
 time_compile = time.time()
 ABS_COMPILOR_PATH = os.path.dirname(os.path.realpath(__file__))+"/"
 Token = namedtuple("Token", ["type", "value", "line"])
 
+
+
+def html_to_pdf(html_path, pdf_path):
+    html_path = Path(html_path).resolve()
+    pdf_path = Path(pdf_path).resolve()
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+
+        page.goto(html_path.as_uri(), wait_until="networkidle")
+
+        page.pdf(
+            path=str(pdf_path),
+            print_background=True,
+            prefer_css_page_size=True,
+        )
+
+        browser.close()
+
+def print_css(as_w, as_h, unit="cm"):
+    return f"""
+@media print {{
+  @page {{
+    size: {as_w}{unit} {as_h}{unit};
+    margin: 0;
+  }}
+
+  html, body {{
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+  }}
+
+  body {{
+    display: block !important;
+  }}
+
+  .overlay-menu,
+  #laser,
+  #loading {{
+    display: none !important;
+  }}
+
+  .frame {{
+    width: {as_w}{unit} !important;
+    height: {as_h}{unit} !important;
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    page-break-after: always;
+    break-after: page;
+    position: relative !important;
+    opacity: 1 !important;
+    transform: none !important;
+    overflow: hidden !important;
+  }}
+
+  .frame:last-child {{
+    page-break-after: auto;
+    break-after: auto;
+  }}
+
+  .frame,
+  .frame * {{
+    animation: none !important;
+    transition: none !important;
+  }}
+}}
+"""
 
 
 # tokenize each lines
@@ -127,6 +199,7 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
         javascript = script.read()
     with open(ABS_COMPILOR_PATH + "static/styles.css", 'r') as style:
         style_code = style.read()
+    style_code += print_css(CSSVARS[0], CSSVARS[1])
 
     try:
         # loads katex's script/style files inside variables
@@ -153,7 +226,7 @@ def write_output_html_file(presentation, css_variable, css_variable_fullscreen, 
 
     with open(folder+name, "w+") as outfile:
         if CSS_FILE_GENERATION:
-            outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js}<script>hljs.highlightAll();</script><style>{css_variable}</style><style>{css_variable_fullscreen}</style><link rel="stylesheet" href="static/styles.css"><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div><div id="laser"></div>"{body}</body>{javascript}</html>""")
+                outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js}<script>hljs.highlightAll();</script><style>{css_variable}</style><style>{css_variable_fullscreen}</style><link rel="stylesheet" href="static/styles.css">{print_css(CSSVARS[0], CSSVARS[1])}<meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div><div id="laser"></div>"{body}</body>{javascript}</html>""")
         else:
             outfile.write(f"""<!DOCTYPE html><html><head>{katex_min_css}{katex_min_js}{katex_render_min_js}{atom_one_dark_css}{highlight_min_js}<script>hljs.highlightAll();</script><style>{css_variable}</style><style>{css_variable_fullscreen}</style><style>{style_code}</style><meta charset="UTF-8"><title>{presentation.title}</title></head><body><div class="overlay-menu"><button id="start">↑↑</button><button id="up">↑</button><input type="number" id="slideNumber" min="0" value="0"><button id="down">↓</button><button id="end">↓↓</button><button id="fullscreen">⛶</button></div><div class="loading" id="loading"><p class="loading-text">loading...</p></div><div id="laser"></div>{body}</body>{javascript}</html>""")
 
@@ -182,8 +255,7 @@ if __name__ == "__main__" :
         "Noto Serif", #font
     ]
 
-    if args.pdf is not None:
-        print("WANTING TO COMPILE TO PDF")
+    TO_PDF = args.pdf is not None
 
     if args.filename:
         file_path = Path(args.filename)
@@ -227,4 +299,7 @@ if __name__ == "__main__" :
         css_variable = formatingFunctions.root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
         css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
         write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder, name, CSS_FILE_GENERATION, SECTIONS, OUTLINE)
+        if TO_PDF:
+            html_to_pdf(folder+name, folder + name.rsplit(".", 1)[0] + ".pdf")
+
         print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./{name}` in {(time.time() - time_compile):.3f} seconds \n")
