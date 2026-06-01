@@ -167,6 +167,7 @@ if __name__ == "__main__" :
     arguments_parser.add_argument("-S", "--sections", action="store_true", help="Disable sections frames")
     arguments_parser.add_argument("-O", "--outline", action="store_true", help="Disable outline")
     arguments_parser.add_argument("-o", "--output", help="Specify the output file name")
+    arguments_parser.add_argument("-p", "--pdf", action="store_true", help="Compiles into a standard PDF")
     args = arguments_parser.parse_args()
 
     CSSVARS= [
@@ -180,6 +181,9 @@ if __name__ == "__main__" :
         1.5, #basefontsize
         "Noto Serif", #font
     ]
+
+    if args.pdf is not None:
+        print("WANTING TO COMPILE TO PDF")
 
     if args.filename:
         file_path = Path(args.filename)

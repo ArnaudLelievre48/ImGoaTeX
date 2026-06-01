@@ -138,7 +138,7 @@ def tokenize_expression(expression, line_number, lines):
                     return Token(typ, tuple([Token("TEXT", matching.group(1), line_number), None]), line_number), after_expression
 
             elif typ == "ITEM":
-                if matching.group(2).strip(" ") in supported_animations_In:
+                if (matching.group(2) is not None) and ( matching.group(2).strip(" ") in supported_animations_In ):
                     animation = matching.group(2).strip(" ")
                 else:
                     animation = None
@@ -147,7 +147,7 @@ def tokenize_expression(expression, line_number, lines):
                 return ( Token(typ, tuple( [token_inside, animation] ), line_number) ), after_expression
 
             elif typ == "SUBITEM":
-                if matching.group(2).strip(" ") in supported_animations_In:
+                if (matching.group(2) is not None) and ( matching.group(2).strip(" ") in supported_animations_In ):
                     animation = matching.group(2).strip(" ")
                 else:
                     animation = None
