@@ -48,6 +48,8 @@ def print_css(as_w, as_h, unit="cm"):
   }}
 
   html, body {{
+    width: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
@@ -65,8 +67,8 @@ def print_css(as_w, as_h, unit="cm"):
   }}
 
   .frame {{
-    width: {as_w}{unit} !important;
-    height: {as_h}{unit} !important;
+    width: 100vw !important;
+    height: 100vh !important;
     margin: 0 !important;
     border: none !important;
     border-radius: 0 !important;
@@ -88,6 +90,26 @@ def print_css(as_w, as_h, unit="cm"):
     animation: none !important;
     transition: none !important;
   }}
+
+  .frameTitle,
+  .frameSubtitle,
+  .frameContent,
+  .frameContentSub,
+  .mediaoverlay,
+  .mediaoverlaySub {{
+    box-sizing: border-box !important;
+    width: 100%;
+    transform: translateY(-8vh) !important;
+    }}
+
+  .mediaoverlay,
+  .mediaoverlaySub {{
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: -10vh !important;
+  }}
+
 }}
 """
 
@@ -300,6 +322,7 @@ if __name__ == "__main__" :
         css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
         write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder, name, CSS_FILE_GENERATION, SECTIONS, OUTLINE)
         if TO_PDF:
-            html_to_pdf(os.path.join(folder, "output.html"), os.path.splitext(html_file)[0] + ".pdf")
+            html_file = os.path.join(folder, name)
+            html_to_pdf(html_file , os.path.splitext(html_file)[0] + ".pdf")
 
         print(f"\n >> ImGoaTeX ~~~~ The file : `{file}` compiled to `./{name}` in {(time.time() - time_compile):.3f} seconds \n")
