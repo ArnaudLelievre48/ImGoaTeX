@@ -48,10 +48,9 @@ def print_css(as_w, as_h, unit="cm"):
   }}
 
   html, body {{
-    width: 100% !important;
-    height: auto !important;
+    width: 100vw !important;
+    height: 100vh !important;
     margin: 0 !important;
-    padding: 0 !important;
     background: white !important;
     overflow: visible !important;
   }}
@@ -90,24 +89,59 @@ def print_css(as_w, as_h, unit="cm"):
     animation: none !important;
     transition: none !important;
   }}
+  .frame {{
+    width: 100%;
+    height: 100%;
+  }}
+  .frameContent {{
+    height: 81vh !important;
+    width: 90vw !important;
+    padding-left: 5vw !important;
+    padding-right: 5vw !important;
+    padding-top: 3vh !important;
+    padding-bottom: 3vh !important;
+  }}
+  .frameContent {{
+    height: 68vh !important;
+    width: 90vw !important;
+    padding-left: 5vw !important;
+    padding-right: 5vw !important;
+    padding-top: 3vh !important;
+    padding-bottom: 3vh !important;
+  }}
+
+
 
   .frameTitle,
-  .frameSubtitle,
-  .frameContent,
-  .frameContentSub,
-  .mediaoverlay,
-  .mediaoverlaySub {{
-    box-sizing: border-box !important;
-    width: 100%;
-    transform: translateY(-8vh) !important;
+  .frameSubtitle {{
+    width: 100vw !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    margin-left: 0.5vw !important;
+    transform: translateY(-1vh) !important;
     }}
+  .frameTitle:not(:has(+ .frameSubtitle)) {{
+    transform: translateY(-3vh) !important;
+  }}
 
   .mediaoverlay,
   .mediaoverlaySub {{
     position: absolute !important;
-    left: 0 !important;
-    right: 0 !important;
-    top: -10vh !important;
+    top: 0 !important;
+  }}
+  .mediaoverlay {{
+    margin-top: 19vh !important;
+    height: 81vh !important;
+  }}
+  .mediaoverlaySub {{
+    margin-top: 26vh !important;
+    height: 74vh !important;
+  }}
+  .mediaoverlay img, video {{
+    margin: 2vh !important;
+  }}
+  .mediaoverlaySub img, video {{
+	margin: 2vh !important;
   }}
 
 }}
