@@ -3,6 +3,8 @@
 %author: Arnaud Lelièvre
 # basefontsize 1.2 is the default fontsize
 # %basefontsize: 1.2
+%as_w: 4
+%as_h: 3
 
 # here is a comment : this line is discarded from the compiler
 
@@ -17,8 +19,9 @@ Here I used a pause command to make a Beamer-like animation that simply copies a
 \item{test}[test]
 \item{test}[MoveLeftIn]
 \pause
-\subitem{new test}[test]
+\subitem{new test}
 \subitem{new test}[RotateIn]
 \pause
 some other text
+\image{ImGoaTeX-squared.png}[position=top, ZoomIn]
 \end{frame}

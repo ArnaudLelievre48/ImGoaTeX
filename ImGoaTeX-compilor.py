@@ -128,6 +128,7 @@ def print_css(as_w, as_h, unit="cm"):
   .mediaoverlaySub {{
     position: absolute !important;
     top: 0 !important;
+    width: 100vw !important;
   }}
   .mediaoverlay {{
     margin-top: 19vh !important;
