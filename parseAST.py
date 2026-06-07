@@ -104,10 +104,16 @@ def parse_filtering(token, presentation, PORTABLE_MEDIAS, current_frame, folder,
             CSSVARS[5] = val
         if key == "color4":
             CSSVARS[6] = val
+        if key == "bgimg":
+            try:
+                with open(folder+"medias/"+val, 'rb') as bgimg:
+                    CSSVARS[7] = f"""data:image/png;base64,{base64.b64encode(bgimg.read()).decode("utf-8")}"""
+            except:
+                CSSVARS[7] = ""
         if key == "basefontsize":
-            CSSVARS[7] = val
-        if key == "font":
             CSSVARS[8] = val
+        if key == "font":
+            CSSVARS[9] = val
 
 
     if token.type == "SECTION":

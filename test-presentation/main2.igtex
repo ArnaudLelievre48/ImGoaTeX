@@ -1,6 +1,7 @@
 %title: My Presentation
 %subtitle: My Presentation : a test actually
 %author: Arnaud Lelièvre
+%bgimg: bgimgtest.jpg
 # basefontsize 1.2 is the default fontsize
 # %basefontsize: 1.2
 %as_w: 4

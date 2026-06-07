@@ -238,6 +238,8 @@ body {
 	transform: rotate(0deg);
 	opacity: 1;
 	background-color: var(--bgcolor);
+  background-image: var(--bgimg);
+  background-size: cover;
 	display: flex;
 	flex-direction: column;
 	align-items: center;

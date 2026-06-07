@@ -308,6 +308,7 @@ if __name__ == "__main__" :
         "#783a1f", #color2
         "#ad5e3b", #color3
         "#362821", #color4
+        "", #backgroundimg
         1.5, #basefontsize
         "Noto Serif", #font
     ]
@@ -353,8 +354,8 @@ if __name__ == "__main__" :
         lines = igtexFile.readlines()
         tokens = tokenize_lines(lines)
         presentation = parse(tokens, folder, lines, CSSVARS)
-        css_variable = formatingFunctions.root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
-        css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8])
+        css_variable = formatingFunctions.root_css(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8], CSSVARS[9])
+        css_variable_fullscreen = formatingFunctions.root_css_fullscreen(CSSVARS[0], CSSVARS[1], CSSVARS[2], CSSVARS[3], CSSVARS[4], CSSVARS[5], CSSVARS[6], CSSVARS[7], CSSVARS[8], CSSVARS[9])
         write_output_html_file(presentation, css_variable, css_variable_fullscreen, folder, name, CSS_FILE_GENERATION, SECTIONS, OUTLINE)
         if TO_PDF:
             html_file = os.path.join(folder, name)
